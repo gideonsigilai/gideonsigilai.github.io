@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://gideonsigilai.github.io/sitemap.xml 
