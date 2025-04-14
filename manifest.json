@@ -1,0 +1,17 @@
+{
+  "name": "Gideon Sigilai - Portfolio",
+  "short_name": "Gideon Portfolio",
+  "description": "Mobile Software Engineer specializing in Flutter and Java development",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030303",
+  "theme_color": "#646cff",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+} 

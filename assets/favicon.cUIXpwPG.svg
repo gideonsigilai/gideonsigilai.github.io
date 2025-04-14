@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Planet gradient -->
+    <radialGradient id="planetGradient" cx="0.5" cy="0.5" r="0.5" fx="0.4" fy="0.35">
+      <stop offset="0%" stop-color="#646cff" stop-opacity="1" />
+      <stop offset="50%" stop-color="#4951e8" stop-opacity="1" />
+      <stop offset="100%" stop-color="#383fb2" stop-opacity="1" />
+    </radialGradient>
+    
+    <!-- Glow effect -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    
+    <!-- Orbit pattern -->
+    <pattern id="orbitPattern" patternUnits="userSpaceOnUse" width="4" height="4">
+      <path d="M0,2 L4,2" stroke="rgba(255, 255, 255, 0.3)" stroke-width="0.5" />
+    </pattern>
+  </defs>
+  
+  <!-- Background stars -->
+  <circle cx="10" cy="8" r="0.5" fill="white" />
+  <circle cx="50" cy="12" r="0.6" fill="white" />
+  <circle cx="58" cy="32" r="0.7" fill="white" />
+  <circle cx="45" cy="52" r="0.5" fill="white" />
+  <circle cx="15" cy="55" r="0.6" fill="white" />
+  <circle cx="5" cy="38" r="0.5" fill="white" />
+  <circle cx="38" cy="5" r="0.5" fill="white" />
+  
+  <!-- Orbit path -->
+  <ellipse cx="32" cy="32" rx="24" ry="16" 
+           fill="none" 
+           stroke="url(#orbitPattern)" 
+           stroke-width="1"
+           transform="rotate(-15 32 32)" />
+  
+  <!-- Planet -->
+  <circle cx="32" cy="32" r="16" fill="url(#planetGradient)" filter="url(#glow)" />
+  
+  <!-- Planet details -->
+  <path d="M24,24 C28,20 38,22 42,28 C46,34 44,40 38,42 C32,44 24,38 22,32 C20,26 22,26 24,24Z" 
+        fill="rgba(255, 255, 255, 0.15)" />
+  
+  <!-- Rocket -->
+  <g transform="translate(54, 22) rotate(45)">
+    <!-- Rocket body -->
+    <path d="M0,0 L4,8 L-4,8 Z" fill="#ff3e00" />
+    <rect x="-3" y="8" width="6" height="4" rx="1" fill="#ff3e00" />
+    
+    <!-- Windows -->
+    <circle cx="0" cy="5" r="1" fill="white" />
+    
+    <!-- Flame -->
+    <path d="M-2,12 L0,15 L2,12" fill="#ffcc00" />
+  </g>
+</svg> 
