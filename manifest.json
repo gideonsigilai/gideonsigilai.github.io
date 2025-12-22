@@ -1,17 +1,67 @@
 {
-  "name": "Gideon Sigilai - Portfolio",
-  "short_name": "Gideon Portfolio",
-  "description": "Mobile Software Engineer specializing in Flutter and Java development",
+  "name": "Gideon Sigilai - Mobile Software Engineer from Longisa, Kenya",
+  "short_name": "Gideon Sigilai",
+  "description": "Portfolio of Gideon Sigilai - Mobile Software Engineer from Longisa, Kenya. Graduate of Gretsa University. Expert in Flutter, Java, Android development. Creator of Onekitty and Moovs apps.",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
   "background_color": "#030303",
   "theme_color": "#646cff",
   "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["portfolio", "developer", "software", "mobile apps"],
+  "iarc_rating_id": "",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
+    },
+    {
+      "src": "/src/assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "About Gideon Sigilai",
+      "short_name": "About",
+      "description": "Learn about Gideon Sigilai from Longisa, Kenya",
+      "url": "/#about",
+      "icons": []
+    },
+    {
+      "name": "Projects by Gideon",
+      "short_name": "Projects",
+      "description": "View Onekitty, Moovs and other projects",
+      "url": "/#projects",
+      "icons": []
+    },
+    {
+      "name": "Contact Gideon Sigilai",
+      "short_name": "Contact",
+      "description": "Get in touch with Gideon Sigilai",
+      "url": "/#contact",
+      "icons": []
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=ke.co.onekitty",
+      "id": "ke.co.onekitty"
+    },
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.salticon.sokonexus",
+      "id": "com.salticon.sokonexus"
     }
   ]
-} 
+}
