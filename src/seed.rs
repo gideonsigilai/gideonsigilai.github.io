@@ -1,4 +1,4 @@
-use crate::content::{has_any_post, insert_post, now_iso, store_admin_hash, stored_admin_hash, Draft};
+use crate::content::{insert_post, now_iso, store_admin_hash, stored_admin_hash, Draft};
 use crate::state::Config;
 use crate::text::{normalise_headings, reading_minutes, render_markdown};
 use sqlx::SqlitePool;
@@ -227,15 +227,169 @@ Post bodies are markdown written by an authenticated owner, but they still go th
 The pattern is not novel; it is just rarely finished. Most tutorials stop at "and then we fetch the data". The work is in the parts that fail quietly — constant-time compares, sanitised output, and cookies the client cannot touch.
 "#,
     },
+    Seed {
+        slug: "offline-first-is-a-design-decision",
+        title: "Offline-first is a design decision, not a feature",
+        excerpt: "Why treating offline as a mode you bolt on later guarantees a broken experience - and how to shape the data model so the network is just another cache.",
+        tags: &["Mobile", "Architecture", "Flutter"],
+        cover_note: "Lessons from shipping apps in low-signal areas.",
+        cover_image: "/images/flutter-cover.png",
+        published_at: "2026-07-12T08:00:00Z",
+        markdown: r#"Offline is not a toggle. It is a statement about what your app believes is true when nobody is watching. Most teams discover this the hard way: they ship a feature, then get a bug report that says "it works on wifi, it spins forever on the bus".
+
+## The network is a cache, not a dependency
+
+If a screen cannot render without a successful request, the network is a dependency. If it can render from local data and refresh in the background, the network is a cache. The difference shows up in three places.
+
+* **First paint**: can the user do anything before the first byte arrives?
+* **Failure mode**: does a dropped connection look like an error or like "slightly stale"?
+* **Conflict resolution**: when two writes disagree, who wins?
+
+Design the second and third before you write the first screen. Retrofitting them is a rewrite.
+
+## Model the queue, not the request
+
+```dart
+abstract class SyncState {
+  const SyncState();
+}
+
+class Synced extends SyncState {
+  const Synced(this.at);
+  final DateTime at;
+}
+
+class Pending extends SyncState {
+  const Pending(this.operation);
+  final Operation operation;
+}
+
+class Failed extends SyncState {
+  const Failed(this.operation, this.reason);
+  final Operation operation;
+  final String reason;
+}
+```
+
+Every mutation becomes an operation in a queue. The queue is the source of truth for "what the user asked for"; the server is the source of truth for "what actually happened". Reconcile them on reconnect.
+
+## Three rules I keep
+
+1. Read from local storage, always. The network only updates local storage.
+2. Writes append to a queue; the queue drains when online. Never block the UI on a write.
+3. Show staleness honestly. "Last updated 2 hours ago" is a feature, not an apology.
+
+## What changes in review
+
+* No `await api.get()` in a widget's build path.
+* Every write has a retry policy and a visible pending state.
+* Conflicts resolve to a user-visible choice, not a silent overwrite.
+
+The bus is a real place. Design for it.
+"#,
+    },
+    Seed {
+        slug: "designing-for-low-bandwidth",
+        title: "Designing for low bandwidth",
+        excerpt: "Practical choices for building interfaces that stay usable on slow, expensive, or intermittent connections - from Nairobi to anywhere the signal drops.",
+        tags: &["Design", "Performance", "Mobile"],
+        cover_note: "Field notes from shipping in Nairobi.",
+        cover_image: "/images/plant_doc_showcase.png",
+        published_at: "2026-06-20T09:00:00Z",
+        markdown: r#"I build in Nairobi, where a "fast" connection is a luxury and a cheap one is a lottery. That constraint has made me a better designer than any style guide.
+
+## Weight is a feature
+
+Every kilobyte is a tax on someone's data bundle. The discipline is simple: measure the page, then cut it.
+
+* Images: serve the right size, lazy-load below the fold, prefer SVG for icons.
+* Fonts: subset to the glyphs you use, ship at most two weights.
+* JavaScript: ship none if the server can render it. This site does exactly that.
+
+## Progressive by default
+
+A page should be useful before it is pretty. Order the markup so the meaningful content arrives first and the decoration loads later, if at all.
+
+```html
+<!-- The article text is the first thing in the document. -->
+<article>…</article>
+<!-- Enhancements load after, and the page still works without them. -->
+<script src="/static/site.js" defer></script>
+```
+
+If the JavaScript fails, the user still reads the article. If the CSS fails, the user still reads the article. If the image fails, the user still reads the article. The article is the product.
+
+## Honest loading states
+
+Spinners lie. They say "working" when the request may have already failed. Prefer:
+
+* Skeletons that match the real layout, so the jump on load is small.
+* A timeout with a retry button, not an infinite spinner.
+* Cached data shown immediately, with a subtle "updating…" indicator.
+
+## Test on a throttled phone
+
+Chrome DevTools throttling is a start. A real 3G connection on a mid-range Android is the truth. I keep a cheap device on my desk and test every release on it. If it feels slow there, it is slow.
+
+The web is for everyone. Build like it.
+"#,
+    },
+    Seed {
+        slug: "a-checklist-for-shipping-flutter",
+        title: "A checklist for shipping Flutter to production",
+        excerpt: "The boring, unglamorous list I run through before a Flutter app goes to real users - from signing to crash reporting to the first-week monitoring plan.",
+        tags: &["Flutter", "Release", "DevOps"],
+        cover_note: "From `flutter build` to a store listing and beyond.",
+        cover_image: "/images/flutter-logo.png",
+        published_at: "2026-05-08T07:30:00Z",
+        markdown: r#"Shipping is not `flutter build apk`. It is everything around that command. Here is the list I actually use.
+
+## Before the build
+
+* `flutter analyze` is clean. Not "mostly clean". Clean.
+* `flutter test` passes on a cold checkout.
+* Version code incremented. Both `version` and `build` in `pubspec.yaml`.
+* Release signing configured and verified with `keytool -list`.
+* ProGuard/R8 rules tested on a release build, not just debug.
+
+## The build itself
+
+```bash
+flutter build appbundle --release --obfuscate --split-debug-info=debug-info/
+```
+
+Keep the `debug-info/` directory. You will need it the first time a crash report arrives and the stack trace is useless without symbols.
+
+## Store listing
+
+* Screenshots on real devices, not simulators. Simulators lie about notches.
+* A short description that says what the app does, not what it is.
+* Privacy policy URL that actually resolves.
+* Data safety form filled honestly. Reviewers check.
+
+## First week
+
+* Crash reporting wired and verified with a deliberate test crash in a beta build.
+* Analytics on the three events that matter: install, first meaningful action, return visit.
+* A channel for feedback that a human reads. Not a form that emails nobody.
+* A rollback plan. For Flutter that means a previous build uploaded and ready.
+
+## After the first week
+
+Read the crash reports. Read the reviews. Fix the top three issues before adding anything new. The first release is a hypothesis; the second release is the answer.
+
+Shipping is a habit, not an event.
+"#,
+    },
 ];
 
-/// Seeds the three starter essays only when the posts table is empty, so an
-/// operator who deletes them does not get them back on the next restart.
+/// Seeds starter essays. Idempotent by slug: a post the operator edited or
+/// deleted is not re-inserted, but new starter essays are added on upgrade.
 pub async fn seed_posts(db: &SqlitePool) -> Result<(), Box<dyn std::error::Error>> {
-    if has_any_post(db).await {
-        return Ok(());
-    }
     for seed in SEEDS {
+        if crate::content::published_by_slug(db, seed.slug).await.ok().flatten().is_some() {
+            continue;
+        }
         let html = normalise_headings(&render_markdown(seed.markdown), seed.title);
         insert_post(
             db,
@@ -262,6 +416,6 @@ pub async fn seed_posts(db: &SqlitePool) -> Result<(), Box<dyn std::error::Error
             .execute(db)
             .await?;
     }
-    tracing::info!("seeded starter posts");
+    tracing::info!(count = SEEDS.len(), "seeded starter posts");
     Ok(())
 }
