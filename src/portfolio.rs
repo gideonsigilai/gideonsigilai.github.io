@@ -1,0 +1,1 @@
+        object.insert("stack_line".into(), json!(self.stack().join(" · ")));
