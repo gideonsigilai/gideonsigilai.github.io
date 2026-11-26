@@ -1,0 +1,5 @@
+                .route("/images/creator.png", get(images::creator))
+                .route("/images/work/{filename}", get(images::project))
+                .route("/images/plant_doc.jpg", get(images::plant_doc))
+                .route("/images/meioufei.png", get(images::meioufei))
+                .route("/images/onekitty.jpg", get(images::onekitty))
