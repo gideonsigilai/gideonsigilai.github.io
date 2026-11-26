@@ -1,0 +1,184 @@
+<section class="admin-shell wrap">
+  <div class="admin-head">
+    <div>
+      <p class="eyebrow">Audience & Devices</p>
+      <h1>Visitor Analytics</h1>
+    </div>
+    <div class="admin-actions">
+      <span class="admin-badge">Live Telemetry</span>
+    </div>
+  </div>
+
+  <div class="analytics-kpis">
+    <div class="kpi-card">
+      <span class="kpi-label">Total Visits</span>
+      <strong class="kpi-value">{{total_views}}</strong>
+      <span class="kpi-sub">{{today_views}} today</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Unique Visitors</span>
+      <strong class="kpi-value">{{unique_visitors}}</strong>
+      <span class="kpi-sub">{{today_visitors}} today</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Mobile Traffic</span>
+      <strong class="kpi-value">{{mobile_pct}}%</strong>
+      <span class="kpi-sub">Top: {{top_device}}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Top Platform</span>
+      <strong class="kpi-value">{{top_os}}</strong>
+      <span class="kpi-sub">{{top_browser}}</span>
+    </div>
+  </div>
+
+  <div class="analytics-grid">
+    <div class="analytics-card">
+      <div class="card-head">
+        <h2>Device Types</h2>
+        <span class="muted small">Mobile, Tablet, Desktop</span>
+      </div>
+      <div class="bar-chart">
+        {{#devices}}
+        <div class="bar-row">
+          <div class="bar-info">
+            <span class="bar-name">{{label}}</span>
+            <span class="bar-count">{{count}} <span class="muted">({{percentage}}%)</span></span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: {{percentage}}%"></div>
+          </div>
+        </div>
+        {{/devices}}
+        {{^devices}}
+        <p class="muted small">No visits recorded yet. Open the portfolio to send the first beacon.</p>
+        {{/devices}}
+      </div>
+    </div>
+
+    <div class="analytics-card">
+      <div class="card-head">
+        <h2>Operating Systems</h2>
+        <span class="muted small">Visitor platforms</span>
+      </div>
+      <div class="bar-chart">
+        {{#os_list}}
+        <div class="bar-row">
+          <div class="bar-info">
+            <span class="bar-name">{{label}}</span>
+            <span class="bar-count">{{count}} <span class="muted">({{percentage}}%)</span></span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill bar-fill--alt" style="width: {{percentage}}%"></div>
+          </div>
+        </div>
+        {{/os_list}}
+        {{^os_list}}
+        <p class="muted small">No visits recorded yet.</p>
+        {{/os_list}}
+      </div>
+    </div>
+
+    <div class="analytics-card">
+      <div class="card-head">
+        <h2>Browsers</h2>
+        <span class="muted small">Client software</span>
+      </div>
+      <div class="bar-chart">
+        {{#browsers}}
+        <div class="bar-row">
+          <div class="bar-info">
+            <span class="bar-name">{{label}}</span>
+            <span class="bar-count">{{count}} <span class="muted">({{percentage}}%)</span></span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill bar-fill--teal" style="width: {{percentage}}%"></div>
+          </div>
+        </div>
+        {{/browsers}}
+        {{^browsers}}
+        <p class="muted small">No visits recorded yet.</p>
+        {{/browsers}}
+      </div>
+    </div>
+
+    <div class="analytics-card">
+      <div class="card-head">
+        <h2>Common Viewports</h2>
+        <span class="muted small">Screen resolutions</span>
+      </div>
+      <div class="bar-chart">
+        {{#viewports}}
+        <div class="bar-row">
+          <div class="bar-info">
+            <span class="bar-name mono">{{label}}</span>
+            <span class="bar-count">{{count}} <span class="muted">({{percentage}}%)</span></span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: {{percentage}}%"></div>
+          </div>
+        </div>
+        {{/viewports}}
+        {{^viewports}}
+        <p class="muted small">No viewport data recorded yet.</p>
+        {{/viewports}}
+      </div>
+    </div>
+  </div>
+
+  <div class="analytics-card analytics-trend-card">
+    <div class="card-head">
+      <h2>Activity Trend (Last 10 Days)</h2>
+      <span class="muted small">Daily pageviews</span>
+    </div>
+    <div class="trend-chart">
+      {{#trend}}
+      <div class="trend-col">
+        <span class="trend-val">{{views}}</span>
+        <div class="trend-bar-wrap">
+          <div class="trend-bar" style="height: {{height_px}}px"></div>
+        </div>
+        <span class="trend-day">{{day}}</span>
+      </div>
+      {{/trend}}
+    </div>
+  </div>
+
+  <div class="analytics-card">
+    <div class="card-head">
+      <h2>Recent Visits</h2>
+      <span class="muted small">Latest pageview telemetry</span>
+    </div>
+    <div class="recent-table-wrap">
+      <table class="recent-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Page</th>
+            <th>Device</th>
+            <th>OS</th>
+            <th>Browser</th>
+            <th>Viewport</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#recent}}
+          <tr>
+            <td class="muted small">{{time_ago}}</td>
+            <td><code class="path-badge">{{path}}</code></td>
+            <td><span class="device-pill device-pill--{{device_type}}">{{device_type}}</span></td>
+            <td>{{os}}</td>
+            <td>{{browser}}</td>
+            <td class="muted mono small">{{viewport}}</td>
+          </tr>
+          {{/recent}}
+          {{^recent}}
+          <tr>
+            <td colspan="6" class="muted small" style="text-align: center; padding: 2rem;">No pageviews recorded yet.</td>
+          </tr>
+          {{/recent}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

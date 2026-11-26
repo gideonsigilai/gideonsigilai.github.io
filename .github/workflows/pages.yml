@@ -1,0 +1,63 @@
+name: Deploy portfolio to GitHub Pages
+
+on:
+  workflow_dispatch:   # triggered by deploy.ps1 after a successful backend deploy
+  schedule:
+    - cron: '*/30 * * * *'   # keep the snapshot fresh even without a backend deploy
+  push:
+    branches: [main]
+    paths:
+      - web/export-pages.ts
+      - .github/workflows/pages.yml
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Export static snapshot from live backend
+        run: |
+          bun run web/export-pages.ts dist/pages \
+            https://217.77.8.87:8052 \
+            https://gideonsigilai.github.io
+        # Fail the workflow if the backend is unreachable so a broken snapshot
+        # is never published. The previous Pages deployment stays live.
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/pages
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

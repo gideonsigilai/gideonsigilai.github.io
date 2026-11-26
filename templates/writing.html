@@ -1,0 +1,63 @@
+<div class="wrap">
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a href="/">Home</a><span aria-hidden="true">/</span>
+    <span aria-current="page">Writing</span>
+  </nav>
+
+  <header class="journal-hero">
+    <p class="eyebrow">Engineering notes</p>
+    <h1>Notes from<br>the <span class="serif">build.</span></h1>
+    <div class="journal-lead">
+      <p>Architecture decisions, security tradeoffs, and the practices that keep a product honest. Written by <a href="/#about">{{author}}</a> while shipping, not after.</p>
+      <a class="text-link" href="/rss.xml">Subscribe via RSS ↗</a>
+    </div>
+  </header>
+
+  <section class="journal-index" aria-label="All posts">
+    {{#has_posts}}
+    <div class="journal-controls">
+      <div class="journal-filters" data-journal-filters role="group" aria-label="Filter notes by tag">
+        <button class="chip" type="button" data-journal-filter="all" aria-pressed="true">All notes</button>
+      </div>
+      <div class="journal-search">
+        <label for="journal-search">Search notes</label>
+        <input id="journal-search" data-journal-search type="search" placeholder="Find a note…" autocomplete="off">
+      </div>
+    </div>
+    <p class="journal-count" data-journal-count role="status" aria-live="polite">All published notes</p>
+    <div class="journal-grid">
+      {{#posts}}
+      <article class="journal-card" data-post>
+        <a class="journal-visual" href="/writing/{{slug}}" aria-label="Read {{title}}">
+          <img class="cover-art" src="{{#cover_image}}{{cover_image}}{{/cover_image}}{{^cover_image}}/images/writing/{{slug}}.svg{{/cover_image}}" width="1200" height="630" loading="lazy" decoding="async" alt="Cover artwork for {{title}} by {{author}}">
+        </a>
+        <div class="journal-meta">
+          <time datetime="{{published_at}}">{{date}}</time>
+          <span>{{reading_min}} min read</span>
+        </div>
+        <h2><a href="/writing/{{slug}}">{{title}}</a></h2>
+        <p>{{excerpt}}</p>
+        <div class="tag-row" data-journal-tags>{{{tags}}}</div>
+        <a class="text-link" href="/writing/{{slug}}">Read note <span aria-hidden="true">↗</span></a>
+      </article>
+      {{/posts}}
+    </div>
+    <div class="detail-empty" data-journal-empty hidden>
+      <h2>No matching notes.</h2>
+      <p>Try a different search or explore all the notes.</p>
+      <button class="btn btn--ghost" type="button" data-journal-reset>Show all notes</button>
+    </div>
+    {{/has_posts}}
+    {{^has_posts}}
+    <div class="detail-empty">
+      <h2>No published notes yet.</h2>
+      <p>Posts appear here as soon as they are published from the dashboard. The RSS feed is the fastest way to know when the first one lands.</p>
+      <a class="text-link" href="/rss.xml">RSS feed</a>
+    </div>
+    {{/has_posts}}
+  </section>
+  <section class="journal-cta" aria-labelledby="journal-topic">
+    <h2 id="journal-topic">Something on your mind?</h2>
+    <a class="text-link" href="/#contact" data-contact>Suggest a topic ↗</a>
+  </section>
+</div>

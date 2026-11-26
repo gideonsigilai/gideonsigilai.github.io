@@ -1,0 +1,86 @@
+<div class="wrap admin-shell">
+  <div class="admin-head">
+    <h1>Dashboard</h1>
+    <div class="admin-actions">
+      <span class="stat"><strong>{{stats.unread}}</strong> unread</span>
+      <span class="stat"><strong>{{stats.conversations}}</strong> conversations</span>
+      <span class="stat"><strong>{{stats.published}}</strong> published</span>
+      <form method="post" action="/logout" style="display:inline">
+        <input type="hidden" name="csrf" value="{{csrf}}">
+        <button type="submit" class="btn btn--ghost btn--sm">Sign out</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-tabs" role="tablist" aria-label="Dashboard sections">
+    <a class="admin-tab" aria-selected="false" href="/">Inbox</a>
+    <a class="admin-tab" aria-selected="true" href="/posts">Writing</a>
+    <a class="admin-tab" aria-selected="false" href="/content">Portfolio</a>
+  </div>
+
+  {{#error}}<p class="alert alert--error" role="alert" style="margin-bottom:1rem">{{error}}</p>{{/error}}
+  {{#notice}}<p class="alert alert--success" role="status" style="margin-bottom:1rem">{{notice}}</p>{{/notice}}
+
+  <div class="admin-grid">
+    <div>
+      <a class="btn btn--lime btn--sm" style="margin-bottom:.75rem;width:100%" href="/posts?new=1">＋ New post</a>
+      <div class="admin-list" aria-label="Posts">
+        {{#posts}}
+        <a class="admin-item" href="/posts?id={{id}}"{{#selected}} aria-current="true"{{/selected}}>
+          <strong>{{title}}{{#draft}} <span class="admin-badge admin-badge--muted">draft</span>{{/draft}}</strong>
+          <span>{{subtitle}}</span>
+        </a>
+        {{/posts}}
+        {{^posts}}<div class="admin-empty">No posts yet.</div>{{/posts}}
+      </div>
+    </div>
+
+    <div class="admin-detail">
+      <form class="editor" method="post" action="{{form_action}}">
+        <input type="hidden" name="csrf" value="{{csrf}}">
+        {{#id}}<input type="hidden" name="id" value="{{id}}">{{/id}}
+        <div class="editor-row">
+          <div class="field">
+            <label for="post-title">Title</label>
+            <input id="post-title" name="title" maxlength="140" value="{{title}}" required>
+          </div>
+          <div class="field">
+            <label for="post-slug">Slug</label>
+            <input id="post-slug" name="slug" maxlength="80" value="{{slug}}" placeholder="auto from title">
+          </div>
+        </div>
+        <div class="editor-row">
+          <div class="field">
+            <label for="post-tags">Tags</label>
+            <input id="post-tags" name="tags" value="{{tags}}" placeholder="Flutter, Security">
+          </div>
+          <div class="field">
+            <label for="post-cover">Pull quote</label>
+            <input id="post-cover" name="cover_note" maxlength="140" value="{{cover_note}}">
+          </div>
+        </div>
+        <div class="field">
+          <label for="post-excerpt">Excerpt</label>
+          <input id="post-excerpt" name="excerpt" maxlength="300" value="{{excerpt}}" placeholder="Derived from the body when left empty">
+        </div>
+        <div class="field">
+          <label for="post-body">Body (Markdown)</label>
+          <textarea id="post-body" name="markdown" required spellcheck="true">{{markdown}}</textarea>
+          <span class="hint">Rendered and sanitised on the server. Code fences, tables, and quotes are supported.</span>
+        </div>
+        <div class="admin-actions">
+          <button type="submit" class="btn btn--ghost btn--sm" name="status" value="draft">Save draft</button>
+          <button type="submit" class="btn btn--lime btn--sm" name="status" value="published">{{#id}}Save &amp; publish{{/id}}{{^id}}Publish{{/id}}</button>
+          {{#id}}<a class="btn btn--ghost btn--sm" href="/writing/{{slug}}" target="_blank" rel="noreferrer">View</a>{{/id}}
+        </div>
+      </form>
+
+      {{#id}}
+      <form method="post" action="/posts/{{id}}/delete" style="margin-top:.75rem">
+        <input type="hidden" name="csrf" value="{{csrf}}">
+        <button type="submit" class="btn btn--ghost btn--sm">Delete post</button>
+      </form>
+      {{/id}}
+    </div>
+  </div>
+</div>

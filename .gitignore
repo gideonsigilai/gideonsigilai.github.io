@@ -1,0 +1,26 @@
+# Rust build output
+target/
+
+# Local database and WAL files created on first run
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# Build output from build.ps1
+dist/
+
+# env files with real secrets
+.env
+.env.local
+.env.*.local
+
+# test/visual artifacts
+.shots/
+*.log
+
+# ad-hoc smoke-test artefacts
+.smoke/
+smoke.exe
+smoke-data/
+.tmpweb/

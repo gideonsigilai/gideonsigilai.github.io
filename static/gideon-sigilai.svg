@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">Gideon Sigilai — Software Engineer</title>
+  <desc id="description">Portfolio cover for Gideon Sigilai, a software engineer in Nairobi, Kenya, working on mobile, web, and applied AI products. This is branded artwork, not a portrait.</desc>
+  <rect width="1200" height="630" fill="#f7f8f2"/>
+  <text x="68" y="91" fill="#527218" font-family="Arial,sans-serif" font-size="20" letter-spacing="3">SOFTWARE ENGINEER / NAIROBI, KENYA</text>
+  <text x="64" y="274" fill="#171916" font-family="Georgia,serif" font-size="112" letter-spacing="-5">Gideon Sigilai</text>
+  <text x="68" y="361" fill="#62675c" font-family="Arial,sans-serif" font-size="32">Mobile · Web · Applied AI</text>
+  <path d="M68 427h625" stroke="#d4fb74" stroke-width="15"/>
+  <text x="68" y="548" fill="#171916" font-family="Arial,sans-serif" font-size="25">Thoughtful software. From the first tap to the systems behind it.</text>
+  <g transform="translate(1030 306)" stroke="#527218" stroke-width="14" stroke-linecap="round">
+    <path d="M-60 0h120M0-60v120M-43-43l86 86M-43 43l86-86"/>
+  </g>
+</svg>

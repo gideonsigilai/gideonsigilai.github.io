@@ -1,0 +1,88 @@
+<div class="wrap admin-shell">
+  <div class="admin-head">
+    <h1>Dashboard</h1>
+    <div class="admin-actions">
+      <span class="stat"><strong>{{stats.unread}}</strong> unread</span>
+      <span class="stat"><strong>{{stats.conversations}}</strong> conversations</span>
+      <span class="stat"><strong>{{stats.published}}</strong> published</span>
+      <form method="post" action="/logout" style="display:inline">
+        <input type="hidden" name="csrf" value="{{csrf}}">
+        <button type="submit" class="btn btn--ghost btn--sm">Sign out</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-tabs" role="tablist" aria-label="Dashboard sections">
+    <a class="admin-tab" aria-selected="true" href="/">Inbox</a>
+    <a class="admin-tab" aria-selected="false" href="/posts">Writing</a>
+    <a class="admin-tab" aria-selected="false" href="/content">Portfolio</a>
+  </div>
+
+  {{#error}}<p class="alert alert--error" role="alert" style="margin-bottom:1rem">{{error}}</p>{{/error}}
+  {{#notice}}<p class="alert alert--success" role="status" style="margin-bottom:1rem">{{notice}}</p>{{/notice}}
+
+  <div class="admin-grid">
+    <div class="admin-list" aria-label="Conversations">
+      {{#has_conversations}}
+      {{#conversations}}
+      <a class="admin-item" href="/?conversation={{id}}"{{#selected}} aria-current="true"{{/selected}}>
+        <strong>{{name}}{{#unread}} <span class="admin-badge">new</span>{{/unread}}{{#archived}} <span class="admin-badge admin-badge--muted">archived</span>{{/archived}}</strong>
+        <span>{{topic}}</span>
+        <span>{{when}} · {{message_count}} message{{#plural}}s{{/plural}}</span>
+      </a>
+      {{/conversations}}
+      {{/has_conversations}}
+      {{^has_conversations}}
+      <div class="admin-empty">No conversations yet. Messages sent from the contact form land here.</div>
+      {{/has_conversations}}
+    </div>
+
+    <div class="admin-detail">
+      {{#detail}}
+      <header>
+        <div>
+          <h2>{{name}}</h2>
+          <span class="small muted">{{topic}} · <a href="mailto:{{email}}" style="text-decoration:underline">{{email}}</a></span>
+        </div>
+        <div class="admin-actions">
+          <form method="post" action="/conversations/{{id}}/status">
+            <input type="hidden" name="csrf" value="{{csrf_root}}">
+            <input type="hidden" name="status" value="read">
+            <button type="submit" class="btn btn--ghost btn--sm">Mark read</button>
+          </form>
+          <form method="post" action="/conversations/{{id}}/status">
+            <input type="hidden" name="csrf" value="{{csrf_root}}">
+            <input type="hidden" name="status" value="archived">
+            <button type="submit" class="btn btn--ghost btn--sm">Archive</button>
+          </form>
+        </div>
+      </header>
+
+      <div class="thread">
+        {{#messages}}
+        <div class="bubble{{#owner}} bubble--owner{{/owner}}">
+          <p class="who">{{author}}</p>
+          <p>{{body}}</p>
+          <time datetime="{{created_at}}">{{when}}</time>
+        </div>
+        {{/messages}}
+      </div>
+
+      <form method="post" action="/conversations/{{id}}/reply">
+        <input type="hidden" name="csrf" value="{{csrf_root}}">
+        <div class="field">
+          <label for="admin-reply">Reply</label>
+          <textarea id="admin-reply" name="body" rows="4" maxlength="4000" placeholder="Write a reply — the visitor sees it in their thread." required></textarea>
+        </div>
+        <div class="admin-actions" style="margin-top:.75rem">
+          <button type="submit" class="btn btn--lime btn--sm">Send reply</button>
+          <button type="submit" class="btn btn--ghost btn--sm" name="close" value="1">Send &amp; archive</button>
+        </div>
+      </form>
+      {{/detail}}
+      {{^detail}}
+      <div class="admin-empty">Select a conversation. The thread, visitor details, and reply box appear here.</div>
+      {{/detail}}
+    </div>
+  </div>
+</div>

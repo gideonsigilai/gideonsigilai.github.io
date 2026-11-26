@@ -1,0 +1,101 @@
+<div class="wrap admin-shell">
+  <div class="admin-head">
+    <h1>Dashboard</h1>
+    <div class="admin-actions">
+      <span class="stat"><strong>{{stats.unread}}</strong> unread</span>
+      <span class="stat"><strong>{{stats.conversations}}</strong> conversations</span>
+      <span class="stat"><strong>{{stats.published}}</strong> published</span>
+      <form method="post" action="/logout" style="display:inline">
+        <input type="hidden" name="csrf" value="{{csrf}}">
+        <button type="submit" class="btn btn--ghost btn--sm">Sign out</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-tabs" role="tablist" aria-label="Dashboard sections">
+    <a class="admin-tab" aria-selected="false" href="/">Inbox</a>
+    <a class="admin-tab" aria-selected="false" href="/posts">Writing</a>
+    <a class="admin-tab" aria-selected="true" href="/content">Portfolio</a>
+  </div>
+
+  {{#error}}<p class="alert alert--error" role="alert" style="margin-bottom:1rem">{{error}}</p>{{/error}}
+  {{#notice}}<p class="alert alert--success" role="status" style="margin-bottom:1rem">{{notice}}</p>{{/notice}}
+
+  <nav class="admin-sections" aria-label="Portfolio sections">
+    {{#sections}}
+    <a class="admin-chip" href="/content?section={{slug}}"{{#active}} aria-current="true"{{/active}}>{{title}} <small>{{count}}</small></a>
+    {{/sections}}
+    <a class="admin-chip" href="/content?section=profile"{{#profile_active}} aria-current="true"{{/profile_active}}>Profile</a>
+  </nav>
+
+  {{#is_profile}}
+  <div class="admin-grid admin-grid--single">
+    <div class="admin-detail">
+      <header>
+        <div>
+          <h2>Site profile</h2>
+          <span class="small muted">Name, copy, and contact details used across every page.</span>
+        </div>
+      </header>
+      <form class="editor" method="post" action="/content/profile">
+        <input type="hidden" name="csrf" value="{{csrf}}">
+        {{{profile_fields}}}
+        <div class="admin-actions">
+          <button type="submit" class="btn btn--lime btn--sm">Save profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {{/is_profile}}
+
+  {{^is_profile}}
+  <div class="admin-grid">
+    <div>
+      <a class="btn btn--lime btn--sm" style="margin-bottom:.75rem;width:100%" href="/content?section={{section}}&id=new">＋ New {{single}}</a>
+      <p class="small muted" style="margin:0 0 .6rem">{{blurb}}</p>
+      <div class="admin-list" aria-label="{{title}}">
+        {{#items}}
+        <div class="admin-list-row">
+          <a class="admin-item" href="/content?section={{section}}&id={{id}}"{{#selected}} aria-current="true"{{/selected}}>
+            <strong>{{title}}</strong>
+            <span>{{detail}}</span>
+          </a>
+          <form method="post" action="/content/{{section}}/{{id}}/move">
+            <input type="hidden" name="csrf" value="{{csrf_root}}">
+            <button type="submit" class="icon-btn" name="direction" value="up" aria-label="Move up" title="Move up">↑</button>
+            <button type="submit" class="icon-btn" name="direction" value="down" aria-label="Move down" title="Move down">↓</button>
+          </form>
+        </div>
+        {{/items}}
+        {{^items}}<div class="admin-empty">Nothing here yet. Add the first {{single}}.</div>{{/items}}
+      </div>
+    </div>
+
+    <div class="admin-detail">
+      <header>
+        <div>
+          <h2>{{#is_new}}New {{single}}{{/is_new}}{{^is_new}}Edit {{single}}{{/is_new}}</h2>
+          <span class="small muted">{{title}} · stored in SQLite, served on request</span>
+        </div>
+        {{^is_new}}<a class="text-link small" href="/content?section={{section}}&id=new">＋ Add another</a>{{/is_new}}
+      </header>
+
+      <form class="editor" method="post" action="{{form_action}}">
+        <input type="hidden" name="csrf" value="{{csrf}}">
+        {{{fields}}}
+        <div class="admin-actions">
+          <button type="submit" class="btn btn--lime btn--sm">Save {{single}}</button>
+          {{#view_href}}<a class="btn btn--ghost btn--sm" href="{{view_href}}" target="_blank" rel="noreferrer">View on site</a>{{/view_href}}
+        </div>
+      </form>
+
+      {{^is_new}}
+      <form method="post" action="/content/{{section}}/{{id}}/delete" style="margin-top:.75rem">
+        <input type="hidden" name="csrf" value="{{csrf}}">
+        <button type="submit" class="btn btn--ghost btn--sm">Delete {{single}}</button>
+      </form>
+      {{/is_new}}
+    </div>
+  </div>
+  {{/is_profile}}
+</div>

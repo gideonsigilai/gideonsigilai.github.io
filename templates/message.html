@@ -1,0 +1,35 @@
+<div class="wrap conversation-page">
+  <div class="conversation-column">
+    <p class="eyebrow">Your conversation</p>
+    <h1>{{conversation.topic}}</h1>
+    <p class="conversation-intro">With {{owner}} · replies are sent from this thread. Keep this link private — it is the only way back in.</p>
+
+    <div class="thread" aria-label="Conversation history">
+      {{#messages}}
+      <div class="bubble{{#owner}} bubble--owner{{/owner}}">
+        <p class="who">{{author}}</p>
+        <p>{{body}}</p>
+        <time datetime="{{created_at}}">{{when}}</time>
+      </div>
+      {{/messages}}
+    </div>
+
+    <form class="form-card thread-form" method="post" action="/messages/{{token}}">
+      <input type="hidden" name="csrf" value="{{csrf}}">
+      <div class="field">
+        <label for="thread-reply">Add to the conversation</label>
+        <textarea id="thread-reply" name="body" rows="4" maxlength="4000" placeholder="Add context, a link, or a follow-up question." required></textarea>
+      </div>
+      {{#error}}<p class="alert alert--error" role="alert">{{error}}</p>{{/error}}
+      <div class="form-foot">
+        <button class="btn btn--lime" type="submit">Send</button>
+        <a class="text-link small" href="mailto:{{email}}">Email instead</a>
+      </div>
+    </form>
+
+    <div class="detail-actions thread-actions">
+      <button type="button" class="btn btn--ghost btn--sm" id="thread-copy">Copy this link</button>
+      <span class="small muted">Bookmark it to come back later.</span>
+    </div>
+  </div>
+</div>

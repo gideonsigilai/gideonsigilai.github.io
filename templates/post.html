@@ -1,0 +1,57 @@
+<div class="wrap">
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a href="/">Home</a><span aria-hidden="true">/</span>
+    <a href="/writing">Writing</a><span aria-hidden="true">/</span>
+    <span aria-current="page">{{post.title}}</span>
+  </nav>
+
+  <div class="post-page">
+    <header class="post-head">
+      <p class="post-meta-inline">
+        <time datetime="{{post.published_at}}">{{date}}</time>
+        <span aria-hidden="true">·</span><span>{{post.reading_min}} min read</span>
+        {{#tag_line}}<span aria-hidden="true">·</span><span>{{tag_line}}</span>{{/tag_line}}
+      </p>
+      <h1>{{post.title}}</h1>
+      <p class="post-dek">{{post.excerpt}}</p>
+      <p class="article-byline">Written by <a href="/#about">{{author}}</a></p>
+      <div class="detail-actions">
+        {{{socials}}}
+        <button class="text-link" type="button" data-share>Share this note ↗</button>
+      </div>
+    </header>
+
+    <figure class="article-cover">
+      <img src="{{#post.cover_image}}{{post.cover_image}}{{/post.cover_image}}{{^post.cover_image}}/images/writing/{{post.slug}}.svg{{/post.cover_image}}" width="1200" height="630" loading="lazy" decoding="async" alt="Cover artwork for {{post.title}} by {{author}}">
+    </figure>
+
+    <div class="post-body">
+      <div class="prose">{{{article}}}</div>
+      <aside class="post-aside">
+        <div class="aside-card">
+          <h2>About the author</h2>
+          <p>{{author}} is a {{job_title}} in {{location}}, building {{hero_focus}} products and the systems behind them.</p>
+          <a class="text-link small" href="/#about">More about me</a>
+        </div>
+        {{#has_more}}
+        <div class="aside-card">
+          <h2>Keep reading</h2>
+          <ul>
+            {{#more}}<li><a href="/writing/{{slug}}">{{title}}</a></li>{{/more}}
+          </ul>
+        </div>
+        {{/has_more}}
+        <div class="aside-card">
+          <h2>Work together</h2>
+          <p>Have a product that needs this kind of care?</p>
+          <a class="btn btn--lime btn--sm" href="/#contact" data-contact>Start a conversation</a>
+        </div>
+      </aside>
+    </div>
+
+    <div class="detail-actions article-end">
+      <a class="btn btn--ghost" href="/writing">← All writing</a>
+      <a class="btn btn--ghost" href="/#contact" data-contact>Start a conversation</a>
+    </div>
+  </div>
+</div>
