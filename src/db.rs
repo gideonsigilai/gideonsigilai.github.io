@@ -5,12 +5,13 @@ use sqlx::{
     SqlitePool,
 };
 
-pub const SCHEMAS: [&str; 5] = [
+pub const SCHEMAS: [&str; 6] = [
     include_str!("../migrations/0001_init.sql"),
     include_str!("../migrations/0002_portfolio.sql"),
     include_str!("../migrations/0003_analytics.sql"),
     include_str!("../migrations/0004_project_image.sql"),
     include_str!("../migrations/0005_post_cover_image.sql"),
+    include_str!("../migrations/0006_seed_post_topics.sql"),
 ];
 pub async fn connect(database_path: &str) -> Result<SqlitePool, Box<dyn std::error::Error>> {
     if let Some(parent) = std::path::Path::new(database_path).parent() {

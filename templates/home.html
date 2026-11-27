@@ -26,11 +26,11 @@
     {{#projects}}
     <article class="project-card{{#wide}} project-card--wide{{/wide}}" data-category="{{category}}" data-reveal>
       <a class="project-art art--{{accent}}" href="/work/{{slug}}" aria-label="Explore {{name}}">
-        <img class="cover-art" src="{{#image}}{{image}}{{/image}}{{^image}}/images/work/{{slug}}.svg{{/image}}" width="1200" height="630" loading="lazy" decoding="async" alt="{{name}} project artwork by {{author}}">
+        <img class="cover-art" src="{{#image}}{{image}}{{/image}}{{^image}}/images/work/{{slug}}.svg{{/image}}" width="1200" height="630" loading="lazy" decoding="async" alt="{{image_alt}}">
         <span class="view-circle" aria-hidden="true">＋</span>
       </a>
       <div class="project-caption">
-        <div><h3><a href="/work/{{slug}}">{{name}}</a>{{#playstore}} <a class="text-link" href="{{playstore_href}}" target="_blank" rel="noopener noreferrer">Google Play ↗</a>{{/playstore}}</h3><p>{{summary}}</p><div class="tag-row">{{#stack_tags}}<span class="chip">{{label}}</span>{{/stack_tags}}</div></div>
+        <div><h3><a href="/work/{{slug}}">{{name}}</a>{{#playstore}} <a class="text-link" href="{{playstore_href}}" target="_blank" rel="noopener noreferrer">Google Play ↗</a>{{/playstore}}</h3><p>{{summary}}</p><div class="tag-row" role="list" aria-label="Technologies used in {{name}}">{{#stack_tags}}<span class="chip" role="listitem">{{label}}</span>{{/stack_tags}}</div></div>
         <a class="text-link" href="/work/{{slug}}">Explore project <span class="sr-only">— {{name}}</span><span aria-hidden="true">＋</span></a>
       </div>
     </article>
@@ -40,8 +40,8 @@
 
 <section class="about" id="about" aria-labelledby="about-title">
   <div class="wrap about-grid">
-    <div class="portrait" role="img" aria-label="Portrait of {{name}}">
-      <img class="portrait-photo" src="/images/creator.png" width="480" height="576" loading="lazy" decoding="async" alt="Portrait of {{name}}">
+    <div class="portrait">
+      <img class="portrait-photo" src="/images/creator.png" width="480" height="576" loading="lazy" decoding="async" alt="Portrait of {{name}}, {{job_title}} in {{location}}">
       <span class="portrait-top">The person behind the code</span>
       <span class="portrait-bottom">{{location}} <span aria-hidden="true">＋</span></span>
     </div>
@@ -84,7 +84,7 @@
     <div class="post-grid">
       {{#posts}}
       <article class="post-card" data-reveal>
-        <a class="post-visual" href="/writing/{{slug}}" aria-label="Read {{title}}"><img class="cover-art" src="{{#cover_image}}{{cover_image}}{{/cover_image}}{{^cover_image}}/images/writing/{{slug}}.svg{{/cover_image}}" width="1200" height="630" loading="lazy" decoding="async" alt="Cover artwork for {{title}} by {{author}}"></a>
+        <a class="post-visual" href="/writing/{{slug}}" aria-label="Read {{title}}"><img class="cover-art" src="{{#cover_image}}{{cover_image}}{{/cover_image}}{{^cover_image}}/images/writing/{{slug}}.svg{{/cover_image}}" width="1200" height="630" loading="lazy" decoding="async" alt="{{image_alt}}"></a>
         <div class="post-meta"><span>{{tag}}</span><span>{{reading_min}} min read</span></div>
         <h3><a href="/writing/{{slug}}">{{title}}</a></h3><p>{{excerpt}}</p>
         <a class="text-link" href="/writing/{{slug}}">Read the note <span class="sr-only">— {{title}}</span><span aria-hidden="true">＋</span></a>

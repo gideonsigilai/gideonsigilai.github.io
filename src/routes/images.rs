@@ -224,6 +224,41 @@ pub async fn mindpocket() -> Response {
         .into_response()
 }
 
+pub async fn flutter_logo() -> Response {
+    const BYTES: &[u8] = include_bytes!("../../images/flutter-logo.png");
+    (
+        [
+            (header::CONTENT_TYPE, "image/png"),
+            (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
+        ],
+        BYTES,
+    )
+        .into_response()
+}
+
+pub async fn rust_logo() -> Response {
+    const BYTES: &[u8] = include_bytes!("../../images/rust-logo.png");
+    (
+        [
+            (header::CONTENT_TYPE, "image/png"),
+            (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
+        ],
+        BYTES,
+    )
+        .into_response()
+}
+
+pub async fn rust_logo_svg() -> Response {
+    const BYTES: &[u8] = include_bytes!("../../images/rust-logo.svg");
+    (
+        [
+            (header::CONTENT_TYPE, "image/svg+xml"),
+            (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
+        ],
+        BYTES,
+    )
+        .into_response()
+}
 pub async fn mindpocket_showcase() -> Response {
     const BYTES: &[u8] = include_bytes!("../../images/mindpocket_showcase.svg");
     (

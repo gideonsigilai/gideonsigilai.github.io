@@ -1,4 +1,4 @@
-<div class="wrap">
+<article class="wrap">
   <nav class="breadcrumbs" aria-label="Breadcrumb">
     <a href="/">Home</a><span aria-hidden="true">/</span>
     <a href="/writing">Writing</a><span aria-hidden="true">/</span>
@@ -10,11 +10,11 @@
       <p class="post-meta-inline">
         <time datetime="{{post.published_at}}">{{date}}</time>
         <span aria-hidden="true">·</span><span>{{post.reading_min}} min read</span>
-        {{#tag_line}}<span aria-hidden="true">·</span><span>{{tag_line}}</span>{{/tag_line}}
       </p>
       <h1>{{post.title}}</h1>
       <p class="post-dek">{{post.excerpt}}</p>
       <p class="article-byline">Written by <a href="/#about">{{author}}</a></p>
+      <div class="tag-row detail-stack" role="list" aria-label="Topics covered in {{post.title}}">{{{topic_chips}}}</div>
       <div class="detail-actions">
         {{{socials}}}
         <button class="text-link" type="button" data-share>Share this note ↗</button>
@@ -22,7 +22,7 @@
     </header>
 
     <figure class="article-cover">
-      <img src="{{#post.cover_image}}{{post.cover_image}}{{/post.cover_image}}{{^post.cover_image}}/images/writing/{{post.slug}}.svg{{/post.cover_image}}" width="1200" height="630" loading="lazy" decoding="async" alt="Cover artwork for {{post.title}} by {{author}}">
+      <img src="{{#post.cover_image}}{{post.cover_image}}{{/post.cover_image}}{{^post.cover_image}}/images/writing/{{post.slug}}.svg{{/post.cover_image}}" width="1200" height="630" loading="eager" fetchpriority="high" decoding="async" alt="{{post.image_alt}}">
     </figure>
 
     <div class="post-body">
@@ -54,4 +54,4 @@
       <a class="btn btn--ghost" href="/#contact" data-contact>Start a conversation</a>
     </div>
   </div>
-</div>
+</article>

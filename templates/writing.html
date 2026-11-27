@@ -29,7 +29,7 @@
       {{#posts}}
       <article class="journal-card" data-post>
         <a class="journal-visual" href="/writing/{{slug}}" aria-label="Read {{title}}">
-          <img class="cover-art" src="{{#cover_image}}{{cover_image}}{{/cover_image}}{{^cover_image}}/images/writing/{{slug}}.svg{{/cover_image}}" width="1200" height="630" loading="lazy" decoding="async" alt="Cover artwork for {{title}} by {{author}}">
+          <img class="cover-art" src="{{#cover_image}}{{cover_image}}{{/cover_image}}{{^cover_image}}/images/writing/{{slug}}.svg{{/cover_image}}" width="1200" height="630" loading="lazy" decoding="async" alt="{{image_alt}}">
         </a>
         <div class="journal-meta">
           <time datetime="{{published_at}}">{{date}}</time>
@@ -37,8 +37,8 @@
         </div>
         <h2><a href="/writing/{{slug}}">{{title}}</a></h2>
         <p>{{excerpt}}</p>
-        <div class="tag-row" data-journal-tags>{{{tags}}}</div>
-        <a class="text-link" href="/writing/{{slug}}">Read note <span aria-hidden="true">↗</span></a>
+        <div class="tag-row" data-journal-tags role="list" aria-label="Topics covered in {{title}}">{{{tags}}}</div>
+        <a class="text-link" href="/writing/{{slug}}">Read note <span class="sr-only">— {{title}}</span><span aria-hidden="true">↗</span></a>
       </article>
       {{/posts}}
     </div>

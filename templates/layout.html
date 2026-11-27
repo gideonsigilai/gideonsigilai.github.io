@@ -11,7 +11,7 @@
 <meta name="author" content="{{site_name}}">
 <meta name="application-name" content="{{site_name}}">
 {{#noindex}}<meta name="robots" content="noindex, nofollow">{{/noindex}}
-{{^noindex}}<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">{{/noindex}}
+{{^noindex}}<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">{{/noindex}}
 {{^noindex}}
 <meta property="og:site_name" content="{{site_name}}">
 <meta property="og:locale" content="en_KE">
@@ -25,7 +25,9 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="{{social_image_alt}}">
 <meta name="twitter:card" content="summary_large_image">
-{{#twitter}}<meta name="twitter:creator" content="{{twitter}}">{{/twitter}}
+{{#twitter}}<meta name="twitter:site" content="{{twitter}}">
+<meta name="twitter:creator" content="{{twitter}}">{{/twitter}}
+<meta name="twitter:url" content="{{canonical}}">
 <meta name="twitter:title" content="{{title}}">
 <meta name="twitter:description" content="{{description}}">
 <meta name="twitter:image" content="{{social_image}}">

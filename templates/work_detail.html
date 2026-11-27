@@ -1,4 +1,4 @@
-<div class="wrap">
+<article class="wrap">
   <nav class="breadcrumbs" aria-label="Breadcrumb">
     <a href="/">Home</a><span aria-hidden="true">/</span>
     <a href="/#work">Work</a><span aria-hidden="true">/</span>
@@ -10,7 +10,7 @@
   <h1>{{project.name}}{{#project.playstore}} <a class="text-link" href="{{project.playstore_href}}" target="_blank" rel="noopener noreferrer">Google Play ↗</a>{{/project.playstore}}</h1>
     <p class="detail-summary">{{project.summary}}</p>
     <p class="article-byline">A project by <a href="/#about">{{author}}</a></p>
-    <div class="tag-row detail-stack">{{{stack_chips}}}</div>
+    <div class="tag-row detail-stack" role="list" aria-label="Technologies used in {{project.name}}">{{{stack_chips}}}</div>
     <dl class="project-facts">
       <div><dt>Role</dt><dd>{{project.role}}</dd></div>
       <div><dt>Timeline</dt><dd>{{project.year}}</dd></div>
@@ -18,7 +18,7 @@
       <div><dt>Stack</dt><dd>{{project.stack_line}}</dd></div>
     </dl>
     <figure class="project-art detail-art art--{{project.accent}}">
-      <img class="cover-art" src="{{#project.image}}{{project.image}}{{/project.image}}{{^project.image}}/images/work/{{project.slug}}.svg{{/project.image}}" width="1200" height="630" loading="lazy" decoding="async" alt="{{project.name}} project artwork by {{author}}">
+      <img class="cover-art" src="{{#project.image}}{{project.image}}{{/project.image}}{{^project.image}}/images/work/{{project.slug}}.svg{{/project.image}}" width="1200" height="630" loading="eager" fetchpriority="high" decoding="async" alt="{{project.image_alt}}">
       <figcaption class="sr-only">{{project.tagline}}</figcaption>
     </figure>
   </header>
@@ -77,4 +77,4 @@
       </div>
     </aside>
   </div>
-</div>
+</article>

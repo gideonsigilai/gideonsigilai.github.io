@@ -250,6 +250,14 @@ pub fn person_schema(site: &Site, base: &str) -> Value {
         "jobTitle": profile.job_title,
         "description": profile.description,
         "url": format!("{base}/"),
+        "image": {
+            "@type": "ImageObject",
+            "url": format!("{base}/images/creator.png"),
+            "contentUrl": format!("{base}/images/creator.png"),
+            "width": 1086,
+            "height": 1448,
+            "caption": format!("Portrait of {}, {} in {}.", profile.name, profile.job_title, profile.location)
+        },
         "address": { "@type": "PostalAddress", "addressLocality": profile.location },
         "sameAs": site.socials.iter()
             .filter(|social| social.href.starts_with("https://") || social.href.starts_with("http://"))
@@ -293,11 +301,12 @@ pub fn breadcrumb_schema(base: &str, items: &[(&str, &str)]) -> Value {
 }
 
 pub fn blog_posting_schema(site: &Site, base: &str, post: &crate::content::PostRow, plain: &str) -> Value {
+    let tags = post.tags();
     let image = if post.cover_image.is_empty() {
         cover_art_schema(
             base,
             &format!("/images/writing/{}.svg", post.slug),
-            &format!("Cover artwork for {} by {}.", post.title, site.profile.name),
+            &post_image_alt(post),
         )
     } else {
         let url = if post.cover_image.starts_with("http://") || post.cover_image.starts_with("https://") {
@@ -312,7 +321,7 @@ pub fn blog_posting_schema(site: &Site, base: &str, post: &crate::content::PostR
             "encodingFormat": if post.cover_image.ends_with(".jpg") || post.cover_image.ends_with(".jpeg") { "image/jpeg" } else if post.cover_image.ends_with(".png") { "image/png" } else if post.cover_image.ends_with(".webp") { "image/webp" } else { "image/svg+xml" },
             "width": 1200,
             "height": 630,
-            "caption": format!("Cover artwork for {} by {}.", post.title, site.profile.name),
+            "caption": post_image_alt(post),
         })
     };
     json!({
@@ -328,7 +337,11 @@ pub fn blog_posting_schema(site: &Site, base: &str, post: &crate::content::PostR
         "dateModified": post.updated_at,
         "wordCount": plain.split_whitespace().count(),
         "timeRequired": format!("PT{}M", post.reading_min),
-        "keywords": post.tags().join(", "),
+        "keywords": tags.join(", "),
+        "about": tags.iter().map(|tag| json!({ "@type": "Thing", "name": tag })).collect::<Vec<_>>(),
+        "articleSection": tags,
+        "isAccessibleForFree": true,
+        "thumbnailUrl": image["url"].clone(),
         "author": { "@id": format!("{base}/#person"), "@type": "Person", "name": site.profile.name, "url": format!("{base}/") },
         "publisher": { "@id": format!("{base}/#person"), "@type": "Person", "name": site.profile.name, "url": format!("{base}/") },
         "image": image,
@@ -348,7 +361,7 @@ pub fn creative_work_schema(site: &Site, base: &str, project: &ProjectRow) -> Va
         cover_art_schema(
             base,
             &format!("/images/work/{}.svg", project.slug),
-            &format!("{} project artwork by {}.", project.name, site.profile.name),
+            &project_image_alt(project),
         )
     } else {
         json!({
@@ -358,10 +371,11 @@ pub fn creative_work_schema(site: &Site, base: &str, project: &ProjectRow) -> Va
             "encodingFormat": if project.image.ends_with(".jpg") || project.image.ends_with(".jpeg") { "image/jpeg" } else if project.image.ends_with(".png") { "image/png" } else if project.image.ends_with(".webp") { "image/webp" } else { "image/svg+xml" },
             "width": 1200,
             "height": 630,
-            "caption": format!("{} project artwork by {}.", project.name, site.profile.name),
+            "caption": project_image_alt(project),
         })
     };
-    json!({
+    let keywords = project_keywords(project);
+    let mut work = json!({
         "@context": "https://schema.org",
         "@type": "CreativeWork",
         "@id": format!("{base}/work/{}#project", project.slug),
@@ -370,11 +384,18 @@ pub fn creative_work_schema(site: &Site, base: &str, project: &ProjectRow) -> Va
         "url": format!("{base}/work/{}", project.slug),
         "mainEntityOfPage": { "@type": "WebPage", "@id": format!("{base}/work/{}", project.slug) },
         "creator": { "@id": format!("{base}/#person"), "@type": "Person", "name": site.profile.name, "url": format!("{base}/") },
+        "thumbnailUrl": image["url"].clone(),
         "image": image,
-        "keywords": project.stack().join(", "),
+        "keywords": keywords.join(", "),
+        "about": keywords.iter().map(|keyword| json!({ "@type": "Thing", "name": keyword })).collect::<Vec<_>>(),
+        "genre": project.category_label,
         "inLanguage": "en",
         "isPartOf": { "@id": format!("{base}/#website") }
-    })
+    });
+    if !project.link_href.trim().is_empty() {
+        work["sameAs"] = json!(project.link_href.trim());
+    }
+    work
 }
 
 fn cover_art_schema(base: &str, path: &str, caption: &str) -> Value {

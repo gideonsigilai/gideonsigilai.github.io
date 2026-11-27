@@ -37,6 +37,7 @@ fn post_card(post: &PostRow) -> Value {
         "tag": tags.first().cloned().unwrap_or_default(),
         "cover_note": if post.cover_note.is_empty() { "Notes from the build." } else { &post.cover_note },
         "cover_image": post.cover_image,
+        "image_alt": post_image_alt(post),
         "tags": tags.join(" · "),
     })
 }
@@ -54,6 +55,7 @@ fn tags_html(post: &PostRow) -> String {
 fn project_card(project: &ProjectRow, index: usize) -> Value {
     let mut card = project.card();
     let object = card.as_object_mut().expect("card is an object");
+    object.insert("image_alt".into(), json!(project_image_alt(project)));
     if let Some(Value::Array(stack)) = object.remove("stack") {
         object.insert(
             "stack_tags".into(),
@@ -212,8 +214,8 @@ pub async fn work_detail(State(state): State<AppState>, Path(slug): Path<String>
         return not_found_response(&state);
     };
 
-    let stack_chips = project
-        .stack()
+    let stack = project.stack();
+    let stack_chips = stack
         .iter()
         .map(|item| format!(r#"<span class="chip">{}</span>"#, escape_html(item)))
         .collect::<String>();
@@ -263,7 +265,8 @@ pub async fn work_detail(State(state): State<AppState>, Path(slug): Path<String>
                 "status": project.status,
                 "accent": project.accent,
                 "image": project.image,
-                "stack_line": project.stack().join(" · "),
+                "image_alt": project_image_alt(&project),
+                "stack_line": stack.join(" · "),
                 "playstore": project.link_href.contains("play.google.com"),
                 "playstore_href": if project.link_href.contains("play.google.com") { project.link_href.clone() } else { String::new() },
                 "features": project.features().into_iter().map(|(title, detail)| json!({
@@ -302,7 +305,7 @@ pub async fn work_detail(State(state): State<AppState>, Path(slug): Path<String>
             format!("{}{}", base(&state), project.image)
         };
         page.social_image(image_url)
-            .social_image_alt(format!("{} project artwork by {}.", project.name, site.profile.name))
+            .social_image_alt(project_image_alt(&project))
     } else {
         page
     };
@@ -319,6 +322,7 @@ pub async fn writing(State(state): State<AppState>) -> ApiResult<Response> {
         .filter(PostRow::is_published)
         .collect::<Vec<_>>();
     let has_posts = !posts.is_empty();
+    let topics = post_topics(&posts);
     let cards: Vec<Value> = posts
         .iter()
         .map(|post| {
@@ -346,8 +350,9 @@ pub async fn writing(State(state): State<AppState>) -> ApiResult<Response> {
             "@type": "CollectionPage",
             "@id": format!("{}/writing#collection", base(&state)),
             "url": format!("{}/writing", base(&state)),
-            "name": format!("Writing — {}", site.profile.name),
+            "name": format!("Software engineering notes — {}", site.profile.name),
             "description": description,
+            "keywords": topics.join(", "),
             "inLanguage": "en",
             "author": { "@id": format!("{}/#person", base(&state)) },
             "isPartOf": { "@id": format!("{}/#website", base(&state)) },
@@ -363,6 +368,8 @@ pub async fn writing(State(state): State<AppState>) -> ApiResult<Response> {
                         "url": format!("{}/writing/{}", base(&state), post.slug),
                         "headline": post.title,
                         "description": post.excerpt,
+                        "keywords": post.tags().join(", "),
+                        "datePublished": post.published_at,
                         "author": { "@id": format!("{}/#person", base(&state)) }
                     }
                 })).collect::<Vec<_>>()
@@ -400,10 +407,11 @@ pub async fn post_detail(State(state): State<AppState>, Path(slug): Path<String>
                 "excerpt": post.excerpt,
                 "reading_min": post.reading_min,
                 "cover_image": post.cover_image,
+                "image_alt": post_image_alt(&post),
                 "published_at": post.published_at.clone().unwrap_or_default(),
             },
             "date": post.published_at.as_deref().map(date_label).unwrap_or_default(),
-            "tag_line": tags.join(" · "),
+            "topic_chips": tags_html(&post),
             "article": article,
             "socials": social_row(&site.socials, false),
             "author": site.profile.name,
@@ -428,10 +436,12 @@ pub async fn post_detail(State(state): State<AppState>, Path(slug): Path<String>
         ),
     ]);
     let extra = format!(
-        r#"<meta property="article:published_time" content="{}"><meta property="article:modified_time" content="{}"><meta property="article:author" content="{}">{}"#,
+        r#"<meta property="article:published_time" content="{}"><meta property="article:modified_time" content="{}"><meta property="article:author" content="{}"><meta property="article:section" content="{}">{}{}"#,
         escape_html(post.published_at.as_deref().unwrap_or_default()),
         escape_html(&post.updated_at),
-        escape_html(&format!("{}/#person", base(&state))),
+        escape_html(&format!("{}/#about", base(&state))),
+        escape_html(tags.first().map(String::as_str).unwrap_or_default()),
+        article_tags,
         head
     );
     let page = Page::new(page_title(&site, &post.title), post.excerpt, format!("/writing/{slug}"))
