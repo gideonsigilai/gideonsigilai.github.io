@@ -79,7 +79,7 @@ const {
 <link rel="stylesheet" href="/static/site.css">
 <link rel="stylesheet" href="/static/detail.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/static/detail.css"></noscript>
-<script is:inline>{`(function(){try{var s=localStorage.getItem("theme");var t=s==="light"||s==="dark"?s:(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");var d=document.documentElement;d.dataset.theme=t;d.style.colorScheme=t}catch(e){document.documentElement.dataset.theme="light"}})();`}</script>
+<script is:inline>(function(){try{var s=localStorage.getItem("theme");var t=s==="light"||s==="dark"?s:(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");var d=document.documentElement;d.dataset.theme=t;d.style.colorScheme=t}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 {headExtra && <Fragment set:html={headExtra} />}
 </head>
 <body>
