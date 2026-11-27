@@ -291,6 +291,7 @@ pub fn api(state: AppState) -> Router {
             .route("/api/toolkit", get(api::toolkit))
             .route("/api/about", get(api::about))
             .route("/api/posts", get(pages::json_posts))
+            .route("/api/posts/{slug}", get(pages::json_post))
             .route("/contact", post(contact::submit_contact))
             .route("/api/telemetry", post(api::record_telemetry))
             .route("/health", get(health))

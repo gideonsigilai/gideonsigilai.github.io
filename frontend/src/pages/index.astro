@@ -1,0 +1,200 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { API_BASE, apiFetch } from '../lib/api';
+
+const site = await apiFetch('/api/site');
+const projectsRes = await apiFetch('/api/projects');
+const toolkitRes = await apiFetch('/api/toolkit');
+const aboutRes = await apiFetch('/api/about');
+const postsRes = await apiFetch('/api/posts');
+
+const projects = projectsRes.projects || [];
+const filters = site.filters || [];
+const socialsHtml = (site.socials || []).map((s: any) => `<a class="social-link" href="${s.href}" rel="noopener noreferrer me" target="_blank">${s.label}</a>`).join('');
+const toolGroups = toolkitRes.groups || [];
+const tools = toolkitRes.tools || [];
+const principles = aboutRes.principles || [];
+const milestones = aboutRes.milestones || [];
+const posts = (postsRes.posts || []).slice(0, 3);
+const tags = postsRes.tags || [];
+
+// build tool chips per group
+function chipsForGroup(gid: string) {
+  return tools.filter((t: any) => t.group === gid).map((t: any) => `<button class="chip" type="button" data-tool="${t.name}">${t.name}</button>`).join('');
+}
+const toolGroupsHtml = toolGroups.map((g: any, i: number) => ({ ...g, number: g.number || String(i+1).padStart(2,'0'), chips: chipsForGroup(g.id) }));
+const initials = site.profile.name.split(' ').map((w: string) => w[0]).join('').slice(0,2).toUpperCase();
+const nav = [
+  { href: '/', label: 'Home', short: 'Home', active: true },
+  { href: '/#work', label: 'Work', short: 'Work' },
+  { href: '/writing', label: 'Writing', short: 'Writing' },
+  { href: '/#contact', label: 'Contact', short: 'Contact', contact: true },
+];
+const canonical = Astro.site ? new URL('/', Astro.site).href : '/';
+---
+<Layout
+  title={`${site.profile.name} — ${site.profile.job_title}`}
+  description={site.profile.description}
+  canonical={canonical}
+  apiBase={API_BASE}
+  siteName={site.profile.name}
+  initials={initials}
+  jobTitle={site.profile.job_title}
+  location={site.profile.location}
+  nav={nav}
+  socials={socialsHtml}
+  year={new Date().getFullYear()}
+>
+  <section class="hero wrap" id="home" aria-labelledby="hero-title">
+    <div class="eyebrow hero-eyebrow">
+      <span>{site.profile.job_title}</span>
+      <span>{site.profile.location} · <time id="nairobi-time">EAT</time></span>
+    </div>
+    <h1 id="hero-title"><span class="hero-identity">{site.profile.name}</span> Good ideas.<br>Great <span class="serif">execution.</span><button class="asterisk spin-trigger" type="button" aria-label="Spin the asterisk" data-depth="0.13">✳</button></h1>
+    <div class="hero-bottom">
+      <p>{site.profile.description}</p>
+      <a class="btn btn--lime" href="#work">Explore my work <span aria-hidden="true">＋</span></a>
+      <div class="hero-note"><span>My focus</span>{site.profile.availability}</div>
+    </div>
+    <div class="hero-line"><span>Built with curiosity. Shipped with care.</span><a href="#work">Scroll to explore <span aria-hidden="true">↓</span></a></div>
+  </section>
+
+  <section class="section wrap" id="work" aria-labelledby="work-title">
+    <div class="section-head">
+      <div><p class="eyebrow">01 / Selected work</p><h2 id="work-title">Ideas, made <span class="serif">real.</span></h2></div>
+      <p>Useful products. Thoughtful details.<br>A few things I&rsquo;ve helped bring to life.</p>
+    </div>
+    <div class="filters" role="group" aria-label="Filter projects" data-filter-group>
+      <button type="button" class="filter" data-filter="all" aria-pressed="true">All work <small>{projects.length}</small></button>
+      {filters.map((f: any) => (
+        <button type="button" class="filter" data-filter={f.id} aria-pressed="false">{f.label} <small>{f.count}</small></button>
+      ))}
+      <span class="sr-only" role="status" aria-live="polite" data-filter-status>Showing {projects.length} of {projects.length} projects</span>
+    </div>
+    <div class="project-grid">
+      {projects.map((p: any, idx: number) => (
+        <article class={`project-card${p.wide || idx === 0 ? ' project-card--wide' : ''}`} data-category={p.category} data-reveal>
+          <a class={`project-art art--${p.accent}`} href={`/work/${p.slug}`} aria-label={`Explore ${p.name}`}>
+            <img class="cover-art" src={p.image || `${API_BASE}/images/work/${p.slug}.svg`} width="1200" height="630" loading="lazy" decoding="async" alt={p.image_alt} />
+            <span class="view-circle" aria-hidden="true">＋</span>
+          </a>
+          <div class="project-caption">
+            <div>
+              <h3><a href={`/work/${p.slug}`}>{p.name}</a>{p.playstore && <> <a class="text-link" href={p.playstore_href} target="_blank" rel="noopener noreferrer">Google Play ↗</a></>}</h3>
+              <p>{p.summary}</p>
+              <div class="tag-row" role="list" aria-label={`Technologies used in ${p.name}`}>{(p.stack_tags || []).map((t: any) => <span class="chip" role="listitem">{t.label}</span>)}</div>
+            </div>
+            <a class="text-link" href={`/work/${p.slug}`}>Explore project <span class="sr-only">— {p.name}</span><span aria-hidden="true">＋</span></a>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="about" id="about" aria-labelledby="about-title">
+    <div class="wrap about-grid">
+      <div class="portrait">
+        <img class="portrait-photo" src={`${API_BASE}/images/creator.png`} width="480" height="576" loading="lazy" decoding="async" alt={`Portrait of ${site.profile.name}, ${site.profile.job_title} in ${site.profile.location}`} />
+        <span class="portrait-top">The person behind the code</span>
+        <span class="portrait-bottom">{site.profile.location} <span aria-hidden="true">＋</span></span>
+      </div>
+      <div class="about-copy">
+        <p class="eyebrow">02 / A little about me</p>
+        <h2 id="about-title">An engineer&rsquo;s mind.<br>A <span class="serif">maker&rsquo;s instinct.</span></h2>
+        <p>{aboutRes.intro}</p>
+        <p>{site.profile.availability}</p>
+        <div class="milestones">
+          {milestones.map((m: any) => (
+            <div class="milestone"><span>{m.marker}</span><div><h3>{m.title}</h3><p>{m.detail}</p></div></div>
+          ))}
+        </div>
+        {principles.map((pr: any) => (
+          <div class="principle"><h3>{pr.title}</h3><p>{pr.body}</p></div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section toolkit wrap" id="toolkit" aria-labelledby="toolkit-title">
+    <div class="section-head">
+      <div><p class="eyebrow">03 / My toolkit</p><h2 id="toolkit-title">The right tools.<br><span class="serif">Thoughtfully used.</span></h2></div>
+      <p>From a fluid interface to a dependable backend.<br>Select a tool to explore where it fits.</p>
+    </div>
+    <div class="skills">
+      {toolGroupsHtml.map((g: any) => (
+        <div class="tool-group" data-reveal>
+          <span class="skill-number">{g.number}</span>
+          <h3>{g.title}</h3>
+          <p>{g.subtitle}</p>
+          <div class="tool-chips" set:html={g.chips}></div>
+        </div>
+      ))}
+    </div>
+    <div class="tool-explorer" id="tool-explorer" aria-live="polite" data-tool-panel>
+      <div><p class="eyebrow">Explore the stack</p><h3 id="tool-name">Every tool has a purpose.</h3><p id="tool-description">Choose a technology above to see how it connects to my work.</p><p class="panel-hint" id="tool-hint">{tools.length} tools across {toolGroups.length} areas — descriptions load as you explore.</p></div>
+      <a class="text-link" id="tool-project" href="/#toolkit" hidden>Explore project</a>
+    </div>
+  </section>
+
+  <section class="journal-section" id="writing" aria-labelledby="writing-title">
+    <div class="wrap">
+      <div class="section-head">
+        <div><p class="eyebrow">04 / The journal</p><h2 id="writing-title">Stay curious.<br><span class="serif">Keep building.</span></h2></div>
+        <div><p>Notes on the craft of making software.<br>Small ideas worth taking into your next build.</p><a class="text-link" href="/writing">Explore the journal <span aria-hidden="true">＋</span></a></div>
+      </div>
+      {posts.length > 0 ? (
+        <div class="post-grid">
+          {posts.map((p: any) => (
+            <article class="post-card" data-reveal>
+              <a class="post-visual" href={`/writing/${p.slug}`} aria-label={`Read ${p.title}`}>
+                <img class="cover-art" src={p.cover_image || `${API_BASE}/images/writing/${p.slug}.svg`} width="1200" height="630" loading="lazy" decoding="async" alt={p.image_alt || p.title} />
+              </a>
+              <div class="post-meta"><span>{(p.tags || [])[0] || 'Note'}</span><span>{p.reading_min} min read</span></div>
+              <h3><a href={`/writing/${p.slug}`}>{p.title}</a></h3>
+              <p>{p.excerpt}</p>
+              <a class="text-link" href={`/writing/${p.slug}`}>Read the note <span class="sr-only">— {p.title}</span><span aria-hidden="true">＋</span></a>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div class="empty-state"><h3>The first note is on its way.</h3><p>Subscribe to the RSS feed to read new notes as they are published.</p><a class="text-link" href="/rss.xml">Subscribe via RSS <span aria-hidden="true">＋</span></a></div>
+      )}
+    </div>
+  </section>
+
+  <section class="contact wrap" id="contact" aria-labelledby="contact-title">
+    <p class="eyebrow">05 / What&rsquo;s next?</p>
+    <div class="contact-row"><h2 id="contact-title">Let&rsquo;s build something<br><span class="serif">worth using.</span></h2><span class="contact-star" data-depth="-0.1" aria-hidden="true">✳</span></div>
+    <div class="contact-bottom"><p>A thoughtful idea. An interesting challenge.<br>A team that cares about its craft.<br>Let&rsquo;s start there.</p><a class="btn btn--ink" href="#contact-form" data-contact>Start a conversation <span aria-hidden="true">＋</span></a></div>
+    <div class="contact-direct">
+      <a href={`mailto:${site.profile.email}`}><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 6 9 7 9-7"></path></svg><span>{site.profile.email}</span></a>
+      <button class="icon-btn" type="button" data-copy-email aria-label="Copy email address"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"></rect><path d="M16 8V3H3v13h5"></path></svg></button>
+      <span class="contact-availability">{site.profile.availability}</span>
+    </div>
+  </section>
+
+  <section class="connect-section wrap" aria-labelledby="connect-title">
+    <div><p class="eyebrow">Let&rsquo;s keep in touch</p><h2 id="connect-title">Elsewhere on the internet.</h2></div>
+    <div set:html={socialsHtml}></div>
+  </section>
+
+  <dialog class="contact-dialog" id="contact-dialog" aria-labelledby="conversation-title">
+    <button class="icon-btn dialog-close" type="button" data-close aria-label="Close conversation form">×</button>
+    <p class="eyebrow">A good place to start</p>
+    <h2 id="conversation-title">Tell me what<br><span class="serif">you&rsquo;re thinking.</span></h2>
+    <p class="dialog-intro">A few details are all we need to get a conversation going.</p>
+    <form class="form-grid" id="contact-form" method="post" action={`${API_BASE}/contact`} novalidate>
+      <div class="field-row">
+        <div class="field"><label for="contact-name">Your name</label><input id="contact-name" name="name" autocomplete="name" maxlength="80" placeholder="Your name" required aria-describedby="contact-name-error"><p class="field-error" id="contact-name-error" data-error-for="name"></p></div>
+        <div class="field"><label for="contact-email">Email address</label><input id="contact-email" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" placeholder="you@example.com" required aria-describedby="contact-email-error"><p class="field-error" id="contact-email-error" data-error-for="email"></p></div>
+      </div>
+      <div class="field"><label for="contact-topic">What brings you here?</label><select id="contact-topic" name="topic"><option value="project">A project</option><option value="collaboration">Collaboration</option><option value="question">A question</option></select><p class="field-error" id="contact-topic-error" data-error-for="topic"></p></div>
+      <div class="field"><label for="contact-body">Your message</label><textarea id="contact-body" name="body" rows="4" minlength="20" maxlength="4000" placeholder="A little about your idea, goals, or question…" required aria-describedby="contact-body-error"></textarea><p class="field-error" id="contact-body-error" data-error-for="body"></p></div>
+      <div class="honeypot" aria-hidden="true"><label for="contact-website">Website</label><input id="contact-website" name="website" tabindex="-1" autocomplete="off"></div>
+      <p class="alert alert--error" role="alert" data-form-error hidden></p>
+      <button class="btn btn--lime btn--block" type="submit">Send message <span aria-hidden="true">＋</span></button>
+      <p class="form-note">No mailing list, no tracking. Your message is stored privately so I can reply.</p>
+    </form>
+    <div class="success-card" id="contact-success" tabindex="-1" hidden><span class="tick" aria-hidden="true">✓</span><h3>Message received.</h3><p>Thanks — it lands straight in my inbox. Keep your private conversation link to read my reply or add more detail.</p><a class="text-link" id="contact-thread-link" href="/#contact" hidden>Open this conversation <span aria-hidden="true">→</span></a></div>
+  </dialog>
+</Layout>

@@ -1,0 +1,82 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { API_BASE, apiFetch } from '../../lib/api';
+
+export async function getStaticPaths() {
+  const res = await apiFetch('/api/posts');
+  return (res.posts || []).map((p: any) => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+const res = await apiFetch(`/api/posts/${slug}`);
+const post = res.post;
+const site = await apiFetch('/api/site');
+const initials = site.profile.name.split(' ').map((w: string) => w[0]).join('').slice(0,2).toUpperCase();
+const socialsHtml = (site.socials || []).map((s: any) => `<a class="social-link" href="${s.href}" rel="noopener noreferrer me" target="_blank">${s.label}</a>`).join('');
+const nav = [
+  { href: '/', label: 'Home', short: 'Home' },
+  { href: '/#work', label: 'Work', short: 'Work' },
+  { href: '/writing', label: 'Writing', short: 'Writing', active: true },
+  { href: '/#contact', label: 'Contact', short: 'Contact', contact: true },
+];
+const more = res.more || [];
+const tags = post.tags || [];
+const topicChips = (res.topic_chips) || tags.map((t: string) => `<span class="chip">${t}</span>`).join('');
+const canonical = Astro.site ? new URL(`/writing/${slug}`, Astro.site).href : `/writing/${slug}`;
+const fmt = (d: string) => { try { return new Date(d).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }); } catch { return d; } };
+---
+<Layout title={`${post.title} — ${site.profile.name}`} description={post.excerpt} canonical={canonical} apiBase={API_BASE} siteName={site.profile.name} initials={initials} jobTitle={site.profile.job_title} location={site.profile.location} nav={nav} socials={socialsHtml} year={new Date().getFullYear()} ogType="article">
+  <article class="wrap">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a><span aria-hidden="true">/</span>
+      <a href="/writing">Writing</a><span aria-hidden="true">/</span>
+      <span aria-current="page">{post.title}</span>
+    </nav>
+    <div class="post-page">
+      <header class="post-head">
+        <p class="post-meta-inline">
+          <time datetime={post.published_at}>{res.date || fmt(post.published_at)}</time>
+          <span aria-hidden="true">·</span><span>{post.reading_min} min read</span>
+        </p>
+        <h1>{post.title}</h1>
+        <p class="post-dek">{post.excerpt}</p>
+        <p class="article-byline">Written by <a href="/#about">{site.profile.name}</a></p>
+        <div class="tag-row detail-stack" role="list" aria-label={`Topics covered in ${post.title}`} set:html={topicChips}></div>
+        <div class="detail-actions">
+          <div set:html={socialsHtml}></div>
+          <button class="text-link" type="button" data-share>Share this note ↗</button>
+        </div>
+      </header>
+      <figure class="article-cover">
+        <img src={post.cover_image || `${API_BASE}/images/writing/${post.slug}.svg`} width="1200" height="630" loading="eager" fetchpriority="high" decoding="async" alt={post.image_alt} />
+      </figure>
+      <div class="post-body">
+        <div class="prose" set:html={res.article}></div>
+        <aside class="post-aside">
+          <div class="aside-card">
+            <h2>About the author</h2>
+            <p>{site.profile.name} is a {site.profile.job_title} in {site.profile.location}, building {site.profile.availability} products and the systems behind them.</p>
+            <a class="text-link small" href="/#about">More about me</a>
+          </div>
+          {more.length > 0 && (
+            <div class="aside-card">
+              <h2>Keep reading</h2>
+              <ul>
+                {more.map((m: any) => <li><a href={`/writing/${m.slug}`}>{m.title}</a></li>)}
+              </ul>
+            </div>
+          )}
+          <div class="aside-card">
+            <h2>Work together</h2>
+            <p>Have a product that needs this kind of care?</p>
+            <a class="btn btn--lime btn--sm" href="/#contact" data-contact>Start a conversation</a>
+          </div>
+        </aside>
+      </div>
+      <div class="detail-actions article-end">
+        <a class="btn btn--ghost" href="/writing">← All writing</a>
+        <a class="btn btn--ghost" href="/#contact" data-contact>Start a conversation</a>
+      </div>
+    </div>
+  </article>
+</Layout>

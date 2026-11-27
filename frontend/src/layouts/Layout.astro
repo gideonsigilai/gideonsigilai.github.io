@@ -1,0 +1,131 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  canonical?: string;
+  apiBase?: string;
+  noindex?: boolean;
+  ogType?: string;
+  socialImage?: string;
+  socialImageAlt?: string;
+  siteName?: string;
+  initials?: string;
+  jobTitle?: string;
+  location?: string;
+  nav?: { href: string; label: string; short?: string; contact?: boolean; active?: boolean }[];
+  socials?: string;
+  year?: number;
+  headExtra?: string;
+}
+const {
+  title,
+  description = '',
+  canonical = '',
+  apiBase = import.meta.env.PUBLIC_API_URL || 'http://127.0.0.1:8052',
+  noindex = false,
+  ogType = 'website',
+  socialImage = `${import.meta.env.PUBLIC_API_URL || 'http://127.0.0.1:8052'}/images/gideon-sigilai.png`,
+  socialImageAlt = '',
+  siteName = 'Gideon Sigilai',
+  initials = 'GS',
+  jobTitle = '',
+  location = '',
+  nav = [],
+  socials = '',
+  year = new Date().getFullYear(),
+  headExtra = '',
+} = Astro.props;
+---
+<!doctype html>
+<html lang="en" data-page={Astro.url.pathname} data-api={apiBase}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title}</title>
+<meta name="description" content={description}>
+{!noindex && <link rel="canonical" href={canonical} />}
+<meta name="theme-color" content="#f7f8f2">
+<meta name="color-scheme" content="light dark">
+<meta name="author" content={siteName}>
+<meta name="application-name" content={siteName}>
+{noindex ? <meta name="robots" content="noindex, nofollow" /> : <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />}
+{!noindex && (
+  <>
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:locale" content="en_KE" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:image" content={socialImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={socialImageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonical} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImage} />
+    <meta name="twitter:image:alt" content={socialImageAlt} />
+  </>
+)}
+<link rel="alternate" type="application/rss+xml" title={`${siteName} — Journal`} href="/rss.xml">
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preload" href="/static/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/static/fonts/instrument-serif-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/static/site.css">
+<script is:inline>{`(function(){try{var s=localStorage.getItem("theme");var t=s==="light"||s==="dark"?s:(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");var d=document.documentElement;d.dataset.theme=t;d.style.colorScheme=t}catch(e){document.documentElement.dataset.theme="light"}})();`}</script>
+{headExtra && <Fragment set:html={headExtra} />}
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="progress" id="progress" aria-hidden="true"></div>
+<header class="site-header" id="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/" aria-label={`${siteName} — home`}><span class="brand-mark">{initials}</span><i aria-hidden="true"></i></a>
+    <nav class="nav" aria-label="Primary">{nav.map((n) => (
+      <a href={n.href} class={n.contact ? 'nav-contact' : undefined} aria-current={n.active ? 'page' : undefined}>{n.label}</a>
+    ))}</nav>
+    <div class="header-tools">
+      <button type="button" class="icon-btn" id="theme-toggle" aria-label="Switch to dark mode" aria-pressed="false"></button>
+      <a class="header-contact" href="/#contact" data-contact>Let&rsquo;s talk <span aria-hidden="true">＋</span></a>
+      <button type="button" class="icon-btn menu-btn" id="menu-open" aria-label="Open menu" aria-expanded="false" aria-haspopup="dialog" aria-controls="menu-sheet"></button>
+    </div>
+  </div>
+</header>
+<dialog class="sheet" id="menu-sheet" aria-labelledby="menu-title">
+  <div class="sheet-inner">
+    <div class="sheet-top"><p class="eyebrow" id="menu-title">Find your way</p><button type="button" class="icon-btn" id="menu-close" aria-label="Close menu"></button></div>
+    <nav class="sheet-nav" aria-label="Mobile">{nav.map((n) => (
+      <a href={n.href} aria-current={n.active ? 'page' : undefined}>{n.label}<span>{n.short}</span></a>
+    ))}</nav>
+    <p class="sheet-foot">{location} · Building for everywhere.</p>
+  </div>
+</dialog>
+<main id="main"><slot /></main>
+<footer class="site-footer wrap">
+  <div class="footer-top"><a href="/" class="footer-name">{siteName}<span>{jobTitle} · {location}</span></a><div class="footer-socials" set:html={socials}></div></div>
+  <div class="footer-bottom"><span>© {year} {siteName}. Made with intention.</span><nav class="footer-nav" aria-label="Footer"><a href="/writing">Journal</a><a href="/rss.xml">RSS</a>{!noindex && <button type="button" class="text-button" data-share>Share this page</button>}<a href="#main">Back to top <span aria-hidden="true">↑</span></a></nav></div>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+{!noindex && (
+<dialog class="share-dialog" id="share-dialog" aria-labelledby="share-title">
+  <button type="button" class="icon-btn dialog-close" data-close aria-label="Close sharing options">×</button>
+  <p class="eyebrow">Pass it on</p><h2 id="share-title">Share a little<br><span class="serif">inspiration.</span></h2>
+  <div class="share-links">
+    <a data-share-platform="linkedin" target="_blank" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>
+    <a data-share-platform="x" target="_blank" rel="noopener noreferrer">X / Twitter <span aria-hidden="true">↗</span></a>
+    <a data-share-platform="whatsapp" target="_blank" rel="noopener noreferrer">WhatsApp <span aria-hidden="true">↗</span></a>
+    <a data-share-platform="facebook" target="_blank" rel="noopener noreferrer">Facebook <span aria-hidden="true">↗</span></a>
+    <a data-share-platform="telegram" target="_blank" rel="noopener noreferrer">Telegram <span aria-hidden="true">↗</span></a>
+    <a data-share-platform="email">Email <span aria-hidden="true">↗</span></a>
+  </div>
+  <button class="btn btn--lime btn--block" type="button" data-copy-page>Copy page link <span aria-hidden="true">＋</span></button>
+  <label class="copy-fallback" hidden>Copy this link<input readonly aria-label="Page link to copy"></label>
+</dialog>
+)}
+<script src="/static/core.js" defer></script>
+<script src="/static/site.js" defer></script>
+</body>
+</html>

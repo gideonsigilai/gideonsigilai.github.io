@@ -24,3 +24,7 @@ dist/
 smoke.exe
 smoke-data/
 .tmpweb/
+
+# Astro frontend
+frontend/node_modules/
+frontend/dist/

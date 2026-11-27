@@ -80,6 +80,8 @@ pub async fn projects(State(state): State<AppState>) -> Response {
             let mut card = project.card();
             let object = card.as_object_mut().expect("card is an object");
             object.insert("stack_line".into(), json!(project.stack().join(" · ")));
+            let ia = if project.tagline.trim().is_empty() { format!("{} project cover — {}", project.name, project.summary.trim()) } else { format!("{} project cover — {} {}", project.name, project.tagline.trim(), project.summary.trim()) };
+            object.insert("image_alt".into(), json!(ia));
             object.insert("wide".into(), json!(index == 0));
             card
         }).collect::<Vec<_>>()
@@ -97,8 +99,17 @@ pub async fn project(State(state): State<AppState>, Path(slug): Path<String>) ->
         .filter(|item| item.slug != project.slug)
         .map(ProjectRow::card)
         .collect();
+    let image_alt = if project.tagline.trim().is_empty() {
+        format!("{} project cover — {}", project.name, project.summary.trim())
+    } else {
+        format!("{} project cover — {} {}", project.name, project.tagline.trim(), project.summary.trim())
+    };
+    let mut detail = project.detail();
+    if let Some(obj) = detail.as_object_mut() {
+        obj.insert("image_alt".into(), json!(image_alt));
+    }
     cached(json!({
-        "project": project.detail(),
+        "project": detail,
         "others": others,
     }))
 }

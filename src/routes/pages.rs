@@ -865,3 +865,61 @@ pub async fn json_posts(State(state): State<AppState>, Query(query): Query<TagQu
     )
         .into_response()
 }
+
+/// JSON detail for a single published post, for the Astro frontend.
+pub async fn json_post(State(state): State<AppState>, Path(slug): Path<String>) -> Response {
+    let Some(post) = published_by_slug(&state.db, &slug)
+        .await
+        .unwrap_or_default()
+    else {
+        return (
+            StatusCode::NOT_FOUND,
+            [(header::CONTENT_TYPE, "application/json")],
+            r#"{"error":{"code":"not_found","message":"That post does not exist."}}"#.to_string(),
+        )
+            .into_response();
+    };
+    if !post.is_published() {
+        return (
+            StatusCode::NOT_FOUND,
+            [(header::CONTENT_TYPE, "application/json")],
+            r#"{"error":{"code":"not_found","message":"That post does not exist."}}"#.to_string(),
+        )
+            .into_response();
+    }
+    let more = related(&state.db, &post.id, 3).await;
+    let article = normalise_headings(&post.body_html, &post.title);
+    let tags = post.tags();
+    let topic_chips = tags
+        .iter()
+        .map(|tag| format!("<span class=\"chip\">{}</span>", escape_html(tag)))
+        .collect::<Vec<_>>()
+        .join("");
+    let payload = json!({
+        "post": {
+            "slug": post.slug,
+            "title": post.title,
+            "excerpt": post.excerpt,
+            "reading_min": post.reading_min,
+            "cover_image": post.cover_image,
+            "image_alt": post_image_alt(&post),
+            "published_at": post.published_at.clone().unwrap_or_default(),
+            "updated_at": post.updated_at,
+            "tags": tags,
+        },
+        "date": post.published_at.as_deref().map(date_label).unwrap_or_default(),
+        "article": article,
+        "topic_chips": topic_chips,
+        "author": "", // filled by client from /api/site if needed
+        "more": more.iter().map(|item| json!({
+            "slug": item.slug,
+            "title": item.title,
+        })).collect::<Vec<_>>(),
+    });
+    (
+        StatusCode::OK,
+        [(header::CONTENT_TYPE, "application/json")],
+        payload.to_string(),
+    )
+        .into_response()
+}
