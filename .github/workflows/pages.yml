@@ -47,6 +47,7 @@ jobs:
       - name: Build Astro frontend
         working-directory: frontend
         env:
+          NODE_TLS_REJECT_UNAUTHORIZED: "0"
           API_URL: https://217.77.8.87:8052
           PUBLIC_API_URL: https://217.77.8.87:8052
           SITE_URL: ${{ steps.pages.outputs.origin || 'https://gideonsigilai.github.io' }}
