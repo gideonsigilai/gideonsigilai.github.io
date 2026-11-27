@@ -1,0 +1,12 @@
+{
+  "name": "Gideon Sigilai",
+  "short_name": "GS",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f8f2",
+  "theme_color": "#f7f8f2",
+  "icons": [
+    { "src": "/static/icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

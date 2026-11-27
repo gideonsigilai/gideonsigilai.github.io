@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { API_BASE, apiFetch } from '../lib/api';
-import { toDataUri, absolutize } from '../lib/images';
+import { imageUrl } from '../lib/images';
 
 const site = await apiFetch('/api/site');
 const projectsRes = await apiFetch('/api/projects');
@@ -12,10 +12,10 @@ const postsRes = await apiFetch('/api/posts');
 const projectsRaw = projectsRes.projects || [];
 const projects = await Promise.all(projectsRaw.map(async (p: any) => ({
   ...p,
-  image: p.image ? await toDataUri(p.image) : await toDataUri(`${API_BASE}/images/work/${p.slug}.svg`),
+  image: p.image ? await imageUrl(p.image) : await imageUrl(`${API_BASE}/images/work/${p.slug}.svg`),
 })));
 
-const creatorImg = await toDataUri(API_BASE + "/images/creator.png");
+const creatorImg = await imageUrl(API_BASE + "/images/creator.png");
 const filters = site.filters || [];
 const socialsHtml = (site.socials || []).map((s: any) => `<a class="social-link" href="${s.href}" rel="noopener noreferrer me" target="_blank">${s.label}</a>`).join('');
 const toolGroups = toolkitRes.groups || [];
@@ -25,7 +25,7 @@ const milestones = aboutRes.milestones || [];
 const postsRaw = (postsRes.posts || []).slice(0, 3);
 const posts = await Promise.all(postsRaw.map(async (p: any) => ({
   ...p,
-  cover_image: p.cover_image ? await toDataUri(p.cover_image) : await toDataUri(`${API_BASE}/images/writing/${p.slug}.svg`),
+  cover_image: p.cover_image ? await imageUrl(p.cover_image) : await imageUrl(`${API_BASE}/images/writing/${p.slug}.svg`),
 })));
 
 const tags = postsRes.tags || [];
@@ -43,6 +43,8 @@ const nav = [
   { href: '/#contact', label: 'Contact', short: 'Contact', contact: true },
 ];
 const canonical = Astro.site ? new URL('/', Astro.site).href : '/';
+const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@type': 'Person', name: site.profile.name, jobTitle: site.profile.job_title, description: site.profile.description, url: canonical, email: 'mailto:' + site.profile.email, address: { '@type': 'PostalAddress', addressLocality: site.profile.location }, sameAs: (site.socials || []).map((x: any) => x.href) });
+const headExtra = '<script type="application/ld+json">' + jsonLd + '</script>';
 ---
 <Layout
   title={`${site.profile.name} — ${site.profile.job_title}`}
@@ -56,6 +58,7 @@ const canonical = Astro.site ? new URL('/', Astro.site).href : '/';
   nav={nav}
   socials={socialsHtml}
   year={new Date().getFullYear()}
+  headExtra={headExtra}
 >
   <section class="hero wrap" id="home" aria-labelledby="hero-title">
     <div class="eyebrow hero-eyebrow">

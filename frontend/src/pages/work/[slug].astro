@@ -1,7 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { API_BASE, apiFetch } from "../../lib/api";
-import { toDataUri } from "../../lib/images";
+import { imageUrl } from "../../lib/images";
 
 export async function getStaticPaths() {
   const res = await apiFetch('/api/projects');
@@ -11,7 +11,7 @@ export async function getStaticPaths() {
 const { slug } = Astro.params;
 const res = await apiFetch(`/api/projects/${slug}`);
 const project = res.project;
-const projectImage = await toDataUri(project.image ? project.image : `${API_BASE}/images/work/${project.slug}.svg`);
+const projectImage = await imageUrl(project.image ? project.image : `${API_BASE}/images/work/${project.slug}.svg`);
 const others = res.others || [];
 const site = await apiFetch('/api/site');
 const initials = site.profile.name.split(' ').map((w: string) => w[0]).join('').slice(0,2).toUpperCase();
@@ -28,9 +28,11 @@ const outcome = project.outcome || [];
 const stackChips = (project.stack || []).map((s: string) => `<span class="chip" role="listitem">${s}</span>`).join('');
 const socialRow = socialsHtml;
 const canonical = Astro.site ? new URL(`/work/${slug}`, Astro.site).href : `/work/${slug}`;
+const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@type': 'CreativeWork', name: project.name, description: project.summary, url: canonical, author: { '@type': 'Person', name: site.profile.name }, keywords: (project.stack || []).join(', ') });
+const headExtra = '<script type="application/ld+json">' + jsonLd + '</script>';
 const link = project.link;
 ---
-<Layout title={`${project.name} — ${site.profile.name}`} description={project.summary} canonical={canonical} apiBase={API_BASE} siteName={site.profile.name} initials={initials} jobTitle={site.profile.job_title} location={site.profile.location} nav={nav} socials={socialsHtml} year={new Date().getFullYear()}>
+<Layout title={`${project.name} — ${site.profile.name}`} description={project.summary} canonical={canonical} apiBase={API_BASE} siteName={site.profile.name} initials={initials} jobTitle={site.profile.job_title} location={site.profile.location} nav={nav} socials={socialsHtml} year={new Date().getFullYear()} headExtra={headExtra}>
   <article class="wrap">
     <nav class="breadcrumbs" aria-label="Breadcrumb">
       <a href="/">Home</a><span aria-hidden="true">/</span>

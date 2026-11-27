@@ -1,7 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { API_BASE, apiFetch } from "../../lib/api";
-import { toDataUri } from "../../lib/images";
+import { imageUrl } from "../../lib/images";
 
 export async function getStaticPaths() {
   const res = await apiFetch('/api/posts');
@@ -11,7 +11,7 @@ export async function getStaticPaths() {
 const { slug } = Astro.params;
 const res = await apiFetch(`/api/posts/${slug}`);
 const post = res.post;
-const postImage = await toDataUri(post.cover_image ? post.cover_image : `${API_BASE}/images/writing/${post.slug}.svg`);
+const postImage = await imageUrl(post.cover_image ? post.cover_image : `${API_BASE}/images/writing/${post.slug}.svg`);
 const site = await apiFetch('/api/site');
 const initials = site.profile.name.split(' ').map((w: string) => w[0]).join('').slice(0,2).toUpperCase();
 const socialsHtml = (site.socials || []).map((s: any) => `<a class="social-link" href="${s.href}" rel="noopener noreferrer me" target="_blank">${s.label}</a>`).join('');
@@ -25,9 +25,11 @@ const more = res.more || [];
 const tags = post.tags || [];
 const topicChips = (res.topic_chips) || tags.map((t: string) => `<span class="chip">${t}</span>`).join('');
 const canonical = Astro.site ? new URL(`/writing/${slug}`, Astro.site).href : `/writing/${slug}`;
+const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@type': 'BlogPosting', headline: post.title, description: post.excerpt, url: canonical, datePublished: post.published_at, author: { '@type': 'Person', name: site.profile.name }, image: postImage });
+const headExtra = '<script type="application/ld+json">' + jsonLd + '</script>';
 const fmt = (d: string) => { try { return new Date(d).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }); } catch { return d; } };
 ---
-<Layout title={`${post.title} — ${site.profile.name}`} description={post.excerpt} canonical={canonical} apiBase={API_BASE} siteName={site.profile.name} initials={initials} jobTitle={site.profile.job_title} location={site.profile.location} nav={nav} socials={socialsHtml} year={new Date().getFullYear()} ogType="article">
+<Layout title={`${post.title} — ${site.profile.name}`} description={post.excerpt} canonical={canonical} apiBase={API_BASE} siteName={site.profile.name} initials={initials} jobTitle={site.profile.job_title} location={site.profile.location} nav={nav} socials={socialsHtml} year={new Date().getFullYear()} ogType="article" headExtra={headExtra}>
   <article class="wrap">
     <nav class="breadcrumbs" aria-label="Breadcrumb">
       <a href="/">Home</a><span aria-hidden="true">/</span>

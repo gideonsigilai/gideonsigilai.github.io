@@ -6,16 +6,9 @@ export function absolutize(url: string): string {
   return `${API_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
-export async function toDataUri(url: string): Promise<string> {
-  const u = absolutize(url);
-  if (u.startsWith('data:')) return u;
-  const res = await fetch(u);
-  if (!res.ok) return u;
-  const buf = await res.arrayBuffer();
-  const bytes = new Uint8Array(buf);
-  let binary = '';
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  const b64 = btoa(binary);
-  const type = res.headers.get('content-type') || 'application/octet-stream';
-  return `data:${type};base64,${b64}`;
+// Images are served by the API with long-lived immutable cache headers, so we
+// reference them directly instead of inlining base64 data URIs. This keeps the
+// HTML small and lets the browser cache and decode images independently.
+export async function imageUrl(url: string): Promise<string> {
+  return absolutize(url);
 }
