@@ -82,7 +82,11 @@ pub fn parse_user_agent(ua: &str) -> (&'static str, &'static str, &'static str) 
     };
 
     // 2. Operating System
-    let os = if ua.contains("iPhone") || ua.contains("iPad") || ua.contains("iPod") || ua.contains("CPU OS") {
+    let os = if ua.contains("iPhone")
+        || ua.contains("iPad")
+        || ua.contains("iPod")
+        || ua.contains("CPU OS")
+    {
         "iOS"
     } else if ua.contains("Android") {
         "Android"
@@ -174,22 +178,22 @@ pub async fn get_analytics_summary(db: &SqlitePool) -> Result<AnalyticsSummary, 
         .await
         .unwrap_or(0);
 
-    let unique_visitors: i64 = sqlx::query_scalar("SELECT COUNT(DISTINCT visitor_hash) FROM pageviews")
-        .fetch_one(db)
-        .await
-        .unwrap_or(0);
+    let unique_visitors: i64 =
+        sqlx::query_scalar("SELECT COUNT(DISTINCT visitor_hash) FROM pageviews")
+            .fetch_one(db)
+            .await
+            .unwrap_or(0);
 
     let today_prefix = chrono::Utc::now().format("%Y-%m-%d").to_string();
-    let today_views: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM pageviews WHERE created_at LIKE ?1"
-    )
-    .bind(format!("{today_prefix}%"))
-    .fetch_one(db)
-    .await
-    .unwrap_or(0);
+    let today_views: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM pageviews WHERE created_at LIKE ?1")
+            .bind(format!("{today_prefix}%"))
+            .fetch_one(db)
+            .await
+            .unwrap_or(0);
 
     let today_visitors: i64 = sqlx::query_scalar(
-        "SELECT COUNT(DISTINCT visitor_hash) FROM pageviews WHERE created_at LIKE ?1"
+        "SELECT COUNT(DISTINCT visitor_hash) FROM pageviews WHERE created_at LIKE ?1",
     )
     .bind(format!("{today_prefix}%"))
     .fetch_one(db)
@@ -205,7 +209,11 @@ pub async fn get_analytics_summary(db: &SqlitePool) -> Result<AnalyticsSummary, 
 
     let device_items: Vec<CountItem> = raw_devices
         .into_iter()
-        .map(|(label, count)| CountItem { label, count, percentage: 0 })
+        .map(|(label, count)| CountItem {
+            label,
+            count,
+            percentage: 0,
+        })
         .collect();
     let devices = compute_percentages(device_items, total_views);
 
@@ -221,14 +229,18 @@ pub async fn get_analytics_summary(db: &SqlitePool) -> Result<AnalyticsSummary, 
     };
 
     let raw_os: Vec<(String, i64)> = sqlx::query_as(
-        "SELECT os, COUNT(*) as count FROM pageviews GROUP BY os ORDER BY count DESC LIMIT 6"
+        "SELECT os, COUNT(*) as count FROM pageviews GROUP BY os ORDER BY count DESC LIMIT 6",
     )
     .fetch_all(db)
     .await
     .unwrap_or_default();
     let os_items: Vec<CountItem> = raw_os
         .into_iter()
-        .map(|(label, count)| CountItem { label, count, percentage: 0 })
+        .map(|(label, count)| CountItem {
+            label,
+            count,
+            percentage: 0,
+        })
         .collect();
     let os_list = compute_percentages(os_items, total_views);
 
@@ -240,7 +252,11 @@ pub async fn get_analytics_summary(db: &SqlitePool) -> Result<AnalyticsSummary, 
     .unwrap_or_default();
     let browser_items: Vec<CountItem> = raw_browsers
         .into_iter()
-        .map(|(label, count)| CountItem { label, count, percentage: 0 })
+        .map(|(label, count)| CountItem {
+            label,
+            count,
+            percentage: 0,
+        })
         .collect();
     let browsers = compute_percentages(browser_items, total_views);
 
@@ -252,7 +268,11 @@ pub async fn get_analytics_summary(db: &SqlitePool) -> Result<AnalyticsSummary, 
     .unwrap_or_default();
     let viewport_items: Vec<CountItem> = raw_viewports
         .into_iter()
-        .map(|(label, count)| CountItem { label, count, percentage: 0 })
+        .map(|(label, count)| CountItem {
+            label,
+            count,
+            percentage: 0,
+        })
         .collect();
     let viewports = compute_percentages(viewport_items, total_views);
 
@@ -267,13 +287,23 @@ pub async fn get_analytics_summary(db: &SqlitePool) -> Result<AnalyticsSummary, 
     .await
     .unwrap_or_default();
 
-    let max_views = raw_trend.iter().map(|(_, v, _)| *v).max().unwrap_or(1).max(1);
+    let max_views = raw_trend
+        .iter()
+        .map(|(_, v, _)| *v)
+        .max()
+        .unwrap_or(1)
+        .max(1);
     let mut trend: Vec<DayTrend> = raw_trend
         .into_iter()
         .rev()
         .map(|(day, views, visitors)| {
             let height_px = ((views as f64 / max_views as f64) * 80.0).round().max(4.0) as i64;
-            DayTrend { day, views, visitors, height_px }
+            DayTrend {
+                day,
+                views,
+                visitors,
+                height_px,
+            }
         })
         .collect();
 
@@ -290,7 +320,7 @@ pub async fn get_analytics_summary(db: &SqlitePool) -> Result<AnalyticsSummary, 
         "SELECT path, device_type, os, browser, viewport, created_at
          FROM pageviews
          ORDER BY id DESC
-         LIMIT 15"
+         LIMIT 15",
     )
     .fetch_all(db)
     .await
@@ -326,9 +356,18 @@ pub async fn get_analytics_summary(db: &SqlitePool) -> Result<AnalyticsSummary, 
         })
         .collect();
 
-    let top_device = devices.first().map(|d| d.label.clone()).unwrap_or_else(|| "None yet".into());
-    let top_os = os_list.first().map(|o| o.label.clone()).unwrap_or_else(|| "None yet".into());
-    let top_browser = browsers.first().map(|b| b.label.clone()).unwrap_or_else(|| "None yet".into());
+    let top_device = devices
+        .first()
+        .map(|d| d.label.clone())
+        .unwrap_or_else(|| "None yet".into());
+    let top_os = os_list
+        .first()
+        .map(|o| o.label.clone())
+        .unwrap_or_else(|| "None yet".into());
+    let top_browser = browsers
+        .first()
+        .map(|b| b.label.clone())
+        .unwrap_or_else(|| "None yet".into());
 
     Ok(AnalyticsSummary {
         total_views,
@@ -361,7 +400,10 @@ mod tests {
         assert_eq!(parse_user_agent(ipad), ("tablet", "iOS", "Safari"));
 
         let android_phone = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Mobile Safari/537.36";
-        assert_eq!(parse_user_agent(android_phone), ("mobile", "Android", "Chrome"));
+        assert_eq!(
+            parse_user_agent(android_phone),
+            ("mobile", "Android", "Chrome")
+        );
 
         let mac_chrome = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36";
         assert_eq!(parse_user_agent(mac_chrome), ("desktop", "macOS", "Chrome"));

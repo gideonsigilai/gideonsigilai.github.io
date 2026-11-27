@@ -109,7 +109,9 @@ fn lookup(stack: &[&Value], path: &str) -> Value {
         None => return Value::Null,
     };
     for context in stack.iter().rev() {
-        let Some(mut current) = context.get(first) else { continue };
+        let Some(mut current) = context.get(first) else {
+            continue;
+        };
         for key in path.split('.').skip(1) {
             match current.get(key) {
                 Some(next) => current = next,
@@ -154,7 +156,10 @@ mod tests {
     #[test]
     fn interpolates_and_escapes() {
         let data = json!({ "name": "<script>x</script>", "raw": "<b>ok</b>" });
-        assert_eq!(render("Hi {{name}}", &data), "Hi &lt;script&gt;x&lt;/script&gt;");
+        assert_eq!(
+            render("Hi {{name}}", &data),
+            "Hi &lt;script&gt;x&lt;/script&gt;"
+        );
         assert_eq!(render("Hi {{{raw}}}", &data), "Hi <b>ok</b>");
     }
 
@@ -189,7 +194,10 @@ mod tests {
             "has_none": false
         });
         assert_eq!(
-            render("{{#has_posts}}<a href=\"/writing/{{featured.slug}}\">{{/has_posts}}", &data),
+            render(
+                "{{#has_posts}}<a href=\"/writing/{{featured.slug}}\">{{/has_posts}}",
+                &data
+            ),
             "<a href=\"/writing/alpha\">"
         );
         assert_eq!(render("x{{#has_none}}hidden{{/has_none}}y", &data), "xy");
@@ -202,7 +210,10 @@ mod tests {
             "detail": { "name": "Ada", "messages": [{ "body": "hi" }] }
         });
         assert_eq!(
-            render("{{#detail}}{{name}}|{{csrf}}{{#messages}}[{{body}}]{{/messages}}{{/detail}}", &data),
+            render(
+                "{{#detail}}{{name}}|{{csrf}}{{#messages}}[{{body}}]{{/messages}}{{/detail}}",
+                &data
+            ),
             "Ada|root-token[hi]"
         );
     }

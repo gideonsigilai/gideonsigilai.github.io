@@ -54,7 +54,11 @@ pub async fn list_published(db: &SqlitePool, limit: i64) -> sqlx::Result<Vec<Pos
     .await
 }
 
-pub async fn published_by_tag(db: &SqlitePool, tag: &str, limit: i64) -> sqlx::Result<Vec<PostRow>> {
+pub async fn published_by_tag(
+    db: &SqlitePool,
+    tag: &str,
+    limit: i64,
+) -> sqlx::Result<Vec<PostRow>> {
     sqlx::query_as(
         "SELECT * FROM posts WHERE status = 'published'
          AND EXISTS (SELECT 1 FROM json_each(posts.tags) WHERE value = ?)
@@ -150,10 +154,11 @@ pub async fn insert_post(db: &SqlitePool, draft: Draft) -> sqlx::Result<String> 
 }
 
 pub async fn update_post(db: &SqlitePool, id: &str, draft: Draft) -> sqlx::Result<Option<String>> {
-    let existing: Option<Option<String>> = sqlx::query_scalar("SELECT published_at FROM posts WHERE id = ?")
-        .bind(id)
-        .fetch_optional(db)
-        .await?;
+    let existing: Option<Option<String>> =
+        sqlx::query_scalar("SELECT published_at FROM posts WHERE id = ?")
+            .bind(id)
+            .fetch_optional(db)
+            .await?;
     let Some(existing_published) = existing else {
         return Ok(None);
     };
@@ -240,7 +245,10 @@ pub struct NewConversation<'a> {
     pub body: &'a str,
 }
 
-pub async fn create_conversation(db: &SqlitePool, input: NewConversation<'_>) -> sqlx::Result<String> {
+pub async fn create_conversation(
+    db: &SqlitePool,
+    input: NewConversation<'_>,
+) -> sqlx::Result<String> {
     let id = uuid::Uuid::new_v4().to_string();
     let timestamp = now_iso();
     let mut tx = db.begin().await?;
@@ -271,7 +279,10 @@ pub async fn create_conversation(db: &SqlitePool, input: NewConversation<'_>) ->
     Ok(id)
 }
 
-pub async fn message_thread(db: &SqlitePool, conversation_id: &str) -> sqlx::Result<Vec<MessageRow>> {
+pub async fn message_thread(
+    db: &SqlitePool,
+    conversation_id: &str,
+) -> sqlx::Result<Vec<MessageRow>> {
     sqlx::query_as(
         "SELECT id, author, body, created_at FROM messages
          WHERE conversation_id = ? ORDER BY created_at ASC",
@@ -281,22 +292,28 @@ pub async fn message_thread(db: &SqlitePool, conversation_id: &str) -> sqlx::Res
     .await
 }
 
-pub async fn conversation_by_token(db: &SqlitePool, token: &str) -> sqlx::Result<Option<ConversationRow>> {
+pub async fn conversation_by_token(
+    db: &SqlitePool,
+    token: &str,
+) -> sqlx::Result<Option<ConversationRow>> {
     sqlx::query_as(
         "SELECT id, token_hash, name, email, topic, status FROM conversations WHERE token_hash = ?",
     )
-        .bind(hash_token(token))
-        .fetch_optional(db)
-        .await
+    .bind(hash_token(token))
+    .fetch_optional(db)
+    .await
 }
 
-pub async fn conversation_by_id(db: &SqlitePool, id: &str) -> sqlx::Result<Option<ConversationRow>> {
+pub async fn conversation_by_id(
+    db: &SqlitePool,
+    id: &str,
+) -> sqlx::Result<Option<ConversationRow>> {
     sqlx::query_as(
         "SELECT id, token_hash, name, email, topic, status FROM conversations WHERE id = ?",
     )
-        .bind(id)
-        .fetch_optional(db)
-        .await
+    .bind(id)
+    .fetch_optional(db)
+    .await
 }
 
 pub async fn conversations(db: &SqlitePool) -> sqlx::Result<Vec<ConversationSummary>> {
@@ -335,18 +352,24 @@ pub async fn add_message(
     .bind(&timestamp)
     .execute(&mut *tx)
     .await?;
-    sqlx::query("UPDATE conversations SET status = ?, updated_at = ?, last_message_at = ? WHERE id = ?")
-        .bind(status)
-        .bind(&timestamp)
-        .bind(&timestamp)
-        .bind(conversation_id)
-        .execute(&mut *tx)
-        .await?;
+    sqlx::query(
+        "UPDATE conversations SET status = ?, updated_at = ?, last_message_at = ? WHERE id = ?",
+    )
+    .bind(status)
+    .bind(&timestamp)
+    .bind(&timestamp)
+    .bind(conversation_id)
+    .execute(&mut *tx)
+    .await?;
     tx.commit().await?;
     Ok(())
 }
 
-pub async fn set_conversation_status(db: &SqlitePool, id: &str, status: &str) -> sqlx::Result<bool> {
+pub async fn set_conversation_status(
+    db: &SqlitePool,
+    id: &str,
+    status: &str,
+) -> sqlx::Result<bool> {
     let changed = sqlx::query("UPDATE conversations SET status = ?, updated_at = ? WHERE id = ?")
         .bind(status)
         .bind(now_iso())
@@ -363,7 +386,10 @@ pub struct AdminSessionRow {
     pub expires_at: String,
 }
 
-pub async fn session_by_token_hash(db: &SqlitePool, token_hash: &str) -> sqlx::Result<Option<AdminSessionRow>> {
+pub async fn session_by_token_hash(
+    db: &SqlitePool,
+    token_hash: &str,
+) -> sqlx::Result<Option<AdminSessionRow>> {
     let row: Option<(String, String)> =
         sqlx::query_as("SELECT csrf_token, expires_at FROM admin_sessions WHERE token_hash = ?")
             .bind(token_hash)

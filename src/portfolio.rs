@@ -247,10 +247,12 @@ pub async fn tool_groups(db: &SqlitePool) -> Vec<ToolGroupRow> {
 }
 
 pub async fn tools(db: &SqlitePool) -> Vec<ToolRow> {
-    sqlx::query_as("SELECT id, name, group_id, description, project_slug FROM tools ORDER BY position, id")
-        .fetch_all(db)
-        .await
-        .unwrap_or_default()
+    sqlx::query_as(
+        "SELECT id, name, group_id, description, project_slug FROM tools ORDER BY position, id",
+    )
+    .fetch_all(db)
+    .await
+    .unwrap_or_default()
 }
 
 pub async fn principles(db: &SqlitePool) -> Vec<PrincipleRow> {
@@ -272,16 +274,27 @@ pub async fn milestones(db: &SqlitePool) -> Vec<MilestoneRow> {
 /// How a stored column maps onto an admin input.
 #[derive(Clone, Copy)]
 pub enum Kind {
-    Line { max: usize },
-    Paragraph { max: usize, rows: u8 },
-    Slug { max: usize },
+    Line {
+        max: usize,
+    },
+    Paragraph {
+        max: usize,
+        rows: u8,
+    },
+    Slug {
+        max: usize,
+    },
     Choice(&'static [&'static str]),
     Lookup(Lookup),
     Toggle,
     /// One item per line, stored as a JSON array of strings.
-    Strings { max: usize },
+    Strings {
+        max: usize,
+    },
     /// `Title :: Detail` per line, stored as a JSON array of objects.
-    Pairs { max: usize },
+    Pairs {
+        max: usize,
+    },
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -347,39 +360,139 @@ const PROJECT_FIELDS: &[Field] = &[
 ];
 
 const TOOL_GROUP_FIELDS: &[Field] = &[
-    Field { column: "title", label: "Title", kind: Kind::Line { max: 80 }, required: true, hint: "" },
-    Field { column: "number", label: "Number", kind: Kind::Line { max: 8 }, required: false, hint: "Order label such as 01." },
-    Field { column: "subtitle", label: "Subtitle", kind: Kind::Line { max: 80 }, required: false, hint: "" },
+    Field {
+        column: "title",
+        label: "Title",
+        kind: Kind::Line { max: 80 },
+        required: true,
+        hint: "",
+    },
+    Field {
+        column: "number",
+        label: "Number",
+        kind: Kind::Line { max: 8 },
+        required: false,
+        hint: "Order label such as 01.",
+    },
+    Field {
+        column: "subtitle",
+        label: "Subtitle",
+        kind: Kind::Line { max: 80 },
+        required: false,
+        hint: "",
+    },
 ];
 
 const TOOL_FIELDS: &[Field] = &[
-    Field { column: "name", label: "Name", kind: Kind::Line { max: 40 }, required: true, hint: "" },
-    Field { column: "group_id", label: "Group", kind: Kind::Lookup(Lookup::Groups), required: true, hint: "" },
-    Field { column: "description", label: "Description", kind: Kind::Paragraph { max: 300, rows: 4 }, required: false, hint: "Shown in the toolkit panel when the chip is selected." },
-    Field { column: "project_slug", label: "Related project", kind: Kind::Lookup(Lookup::Projects), required: false, hint: "Optional link to a case study." },
+    Field {
+        column: "name",
+        label: "Name",
+        kind: Kind::Line { max: 40 },
+        required: true,
+        hint: "",
+    },
+    Field {
+        column: "group_id",
+        label: "Group",
+        kind: Kind::Lookup(Lookup::Groups),
+        required: true,
+        hint: "",
+    },
+    Field {
+        column: "description",
+        label: "Description",
+        kind: Kind::Paragraph { max: 300, rows: 4 },
+        required: false,
+        hint: "Shown in the toolkit panel when the chip is selected.",
+    },
+    Field {
+        column: "project_slug",
+        label: "Related project",
+        kind: Kind::Lookup(Lookup::Projects),
+        required: false,
+        hint: "Optional link to a case study.",
+    },
 ];
 
 const PRINCIPLE_FIELDS: &[Field] = &[
-    Field { column: "title", label: "Title", kind: Kind::Line { max: 60 }, required: true, hint: "" },
-    Field { column: "body", label: "Body", kind: Kind::Paragraph { max: 300, rows: 4 }, required: true, hint: "" },
+    Field {
+        column: "title",
+        label: "Title",
+        kind: Kind::Line { max: 60 },
+        required: true,
+        hint: "",
+    },
+    Field {
+        column: "body",
+        label: "Body",
+        kind: Kind::Paragraph { max: 300, rows: 4 },
+        required: true,
+        hint: "",
+    },
 ];
 
 const MILESTONE_FIELDS: &[Field] = &[
-    Field { column: "title", label: "Title", kind: Kind::Line { max: 90 }, required: true, hint: "" },
-    Field { column: "marker", label: "Marker", kind: Kind::Line { max: 12 }, required: false, hint: "Short label such as 2024 or Now." },
-    Field { column: "detail", label: "Detail", kind: Kind::Line { max: 120 }, required: false, hint: "" },
+    Field {
+        column: "title",
+        label: "Title",
+        kind: Kind::Line { max: 90 },
+        required: true,
+        hint: "",
+    },
+    Field {
+        column: "marker",
+        label: "Marker",
+        kind: Kind::Line { max: 12 },
+        required: false,
+        hint: "Short label such as 2024 or Now.",
+    },
+    Field {
+        column: "detail",
+        label: "Detail",
+        kind: Kind::Line { max: 120 },
+        required: false,
+        hint: "",
+    },
 ];
 
 const SOCIAL_FIELDS: &[Field] = &[
-    Field { column: "label", label: "Label", kind: Kind::Line { max: 40 }, required: true, hint: "" },
-    Field { column: "handle", label: "Handle", kind: Kind::Line { max: 60 }, required: false, hint: "" },
-    Field { column: "href", label: "URL", kind: Kind::Line { max: 300 }, required: true, hint: "https://… or mailto:…" },
-    Field { column: "icon", label: "Icon", kind: Kind::Choice(&["github", "x", "linkedin", "mail", "model", "link"]), required: true, hint: "" },
+    Field {
+        column: "label",
+        label: "Label",
+        kind: Kind::Line { max: 40 },
+        required: true,
+        hint: "",
+    },
+    Field {
+        column: "handle",
+        label: "Handle",
+        kind: Kind::Line { max: 60 },
+        required: false,
+        hint: "",
+    },
+    Field {
+        column: "href",
+        label: "URL",
+        kind: Kind::Line { max: 300 },
+        required: true,
+        hint: "https://… or mailto:…",
+    },
+    Field {
+        column: "icon",
+        label: "Icon",
+        kind: Kind::Choice(&["github", "x", "linkedin", "mail", "model", "link"]),
+        required: true,
+        hint: "",
+    },
 ];
 
-const CATEGORY_FIELDS: &[Field] = &[
-    Field { column: "label", label: "Label", kind: Kind::Line { max: 40 }, required: true, hint: "Shown on the filter button." },
-];
+const CATEGORY_FIELDS: &[Field] = &[Field {
+    column: "label",
+    label: "Label",
+    kind: Kind::Line { max: 40 },
+    required: true,
+    hint: "Shown on the filter button.",
+}];
 
 pub const COLLECTIONS: &[Collection] = &[
     Collection {
@@ -485,9 +598,21 @@ pub struct LookupOptions {
 impl LookupOptions {
     pub async fn load(db: &SqlitePool) -> Self {
         Self {
-            categories: categories(db).await.into_iter().map(|row| (row.id, row.label)).collect(),
-            groups: tool_groups(db).await.into_iter().map(|row| (row.id, row.title)).collect(),
-            projects: projects(db).await.into_iter().map(|row| (row.slug, row.name)).collect(),
+            categories: categories(db)
+                .await
+                .into_iter()
+                .map(|row| (row.id, row.label))
+                .collect(),
+            groups: tool_groups(db)
+                .await
+                .into_iter()
+                .map(|row| (row.id, row.title))
+                .collect(),
+            projects: projects(db)
+                .await
+                .into_iter()
+                .map(|row| (row.slug, row.name))
+                .collect(),
         }
     }
 
@@ -550,7 +675,10 @@ pub fn parse_value(field: &Field, raw: &str, options: &LookupOptions) -> Result<
             }
             let slug = slugify(trimmed);
             if slug.is_empty() || slug.len() > max {
-                return Err(format!("{} must be a single URL-safe word up to {max} characters.", field.label));
+                return Err(format!(
+                    "{} must be a single URL-safe word up to {max} characters.",
+                    field.label
+                ));
             }
             Ok(slug)
         }
@@ -561,7 +689,11 @@ pub fn parse_value(field: &Field, raw: &str, options: &LookupOptions) -> Result<
             if allowed.contains(&trimmed) {
                 Ok(trimmed.to_string())
             } else {
-                Err(format!("{}: choose one of {}.", field.label, allowed.join(", ")))
+                Err(format!(
+                    "{}: choose one of {}.",
+                    field.label,
+                    allowed.join(", ")
+                ))
             }
         }
         Kind::Lookup(lookup) => {
@@ -626,10 +758,9 @@ pub fn fields_html(
     while index < collection.fields.len() {
         let field = &collection.fields[index];
         // Two short fields share a row; long prose and toggles take the width.
-        let next = collection
-            .fields
-            .get(index + 1)
-            .filter(|next| !is_block(field) && !is_block(next) && !matches!(field.kind, Kind::Toggle));
+        let next = collection.fields.get(index + 1).filter(|next| {
+            !is_block(field) && !is_block(next) && !matches!(field.kind, Kind::Toggle)
+        });
 
         match next {
             Some(next) => {
@@ -695,7 +826,10 @@ fn field_html(field: &Field, raw: &str, options: &LookupOptions) -> String {
                     )
                 })
                 .collect::<String>();
-            format!(r#"<select id="{id}" name="{}"{required}>{options_html}</select>"#, field.column)
+            format!(
+                r#"<select id="{id}" name="{}"{required}>{options_html}</select>"#,
+                field.column
+            )
         }
         Kind::Lookup(lookup) => {
             let choices = options.choices(lookup);
@@ -714,7 +848,10 @@ fn field_html(field: &Field, raw: &str, options: &LookupOptions) -> String {
             if choices.is_empty() {
                 options_html.push_str(r#"<option value="">Nothing to choose yet</option>"#);
             }
-            format!(r#"<select id="{id}" name="{}"{required}>{options_html}</select>"#, field.column)
+            format!(
+                r#"<select id="{id}" name="{}"{required}>{options_html}</select>"#,
+                field.column
+            )
         }
         Kind::Toggle => unreachable!("handled above"),
         Kind::Strings { .. } | Kind::Pairs { .. } => format!(
@@ -724,7 +861,10 @@ fn field_html(field: &Field, raw: &str, options: &LookupOptions) -> String {
         ),
     };
 
-    format!(r#"<div class="field"><label for="{id}">{}</label>{control}{hint}</div>"#, escape_html(field.label))
+    format!(
+        r#"<div class="field"><label for="{id}">{}</label>{control}{hint}</div>"#,
+        escape_html(field.label)
+    )
 }
 
 /// Validates every submitted field. On failure returns the first message.
@@ -740,7 +880,11 @@ pub fn parse_form(
     }
 
     // Derive a blank slug from the row's headline column.
-    if let Some(field) = collection.fields.iter().find(|field| matches!(field.kind, Kind::Slug { .. })) {
+    if let Some(field) = collection
+        .fields
+        .iter()
+        .find(|field| matches!(field.kind, Kind::Slug { .. }))
+    {
         let source = match collection.id {
             IdKind::Slug(column) => column,
             IdKind::Uuid => collection.summary_column,
@@ -763,7 +907,10 @@ pub fn parse_form(
         if derived.is_empty() {
             return Err(format!("{} is required.", field.label));
         }
-        if let Some((_, value)) = values.iter_mut().find(|(column, _)| *column == field.column) {
+        if let Some((_, value)) = values
+            .iter_mut()
+            .find(|(column, _)| *column == field.column)
+        {
             *value = derived;
         }
     }
@@ -783,7 +930,11 @@ pub fn row_id(collection: &Collection, values: &[(String, String)]) -> String {
                 .map(|(_, value)| value.as_str())
                 .unwrap_or_default();
             let slug = slugify(seed);
-            if slug.is_empty() { uuid::Uuid::new_v4().to_string() } else { slug }
+            if slug.is_empty() {
+                uuid::Uuid::new_v4().to_string()
+            } else {
+                slug
+            }
         }
     }
 }
@@ -845,7 +996,10 @@ pub async fn update_row(
         .collect::<Vec<_>>()
         .join(", ");
     let sql = if collection.table == "projects" {
-        format!("UPDATE {} SET {assignments}, updated_at = ? WHERE id = ?", collection.table)
+        format!(
+            "UPDATE {} SET {assignments}, updated_at = ? WHERE id = ?",
+            collection.table
+        )
     } else {
         format!("UPDATE {} SET {assignments} WHERE id = ?", collection.table)
     };
@@ -875,7 +1029,10 @@ pub async fn row_values(db: &SqlitePool, table: &str, id: &str) -> Option<Vec<(S
         let name = column.name().to_string();
         let text = row
             .try_get::<String, _>(name.as_str())
-            .or_else(|_| row.try_get::<i64, _>(name.as_str()).map(|number| number.to_string()))
+            .or_else(|_| {
+                row.try_get::<i64, _>(name.as_str())
+                    .map(|number| number.to_string())
+            })
             .unwrap_or_default();
         values.push((name, text));
     }
@@ -898,7 +1055,10 @@ async fn next_position(
             "SELECT COALESCE(MAX(position), -1) + 1 FROM {} WHERE {column} = ?",
             collection.table
         ),
-        _ => format!("SELECT COALESCE(MAX(position), -1) + 1 FROM {}", collection.table),
+        _ => format!(
+            "SELECT COALESCE(MAX(position), -1) + 1 FROM {}",
+            collection.table
+        ),
     };
     let mut query = sqlx::query_scalar::<_, i64>(&sql);
     if let Some(value) = &scope {
@@ -982,25 +1142,90 @@ pub fn profile_values(profile: &ProfileRow) -> Vec<(String, String)> {
         ("availability".into(), profile.availability.clone()),
         ("hero_lead".into(), profile.hero_lead.clone()),
         ("hero_focus".into(), profile.hero_focus.clone()),
-        ("hero_focus_detail".into(), profile.hero_focus_detail.clone()),
+        (
+            "hero_focus_detail".into(),
+            profile.hero_focus_detail.clone(),
+        ),
         ("about_intro".into(), profile.about_intro.clone()),
     ]
 }
 
 pub const PROFILE_FIELDS: &[Field] = &[
-    Field { column: "name", label: "Name", kind: Kind::Line { max: 80 }, required: true, hint: "Brand, header, and structured data." },
-    Field { column: "job_title", label: "Job title", kind: Kind::Line { max: 80 }, required: true, hint: "" },
-    Field { column: "location", label: "Location", kind: Kind::Line { max: 80 }, required: true, hint: "" },
-    Field { column: "email", label: "Email", kind: Kind::Line { max: 254 }, required: true, hint: "Used by the contact links." },
-    Field { column: "availability", label: "Availability", kind: Kind::Line { max: 80 }, required: false, hint: "Hero badge, e.g. Available for new work." },
-    Field { column: "description", label: "Meta description", kind: Kind::Paragraph { max: 400, rows: 3 }, required: true, hint: "Search and share previews." },
-    Field { column: "hero_lead", label: "Hero lead", kind: Kind::Paragraph { max: 400, rows: 3 }, required: true, hint: "First paragraph on the home page." },
-    Field { column: "hero_focus", label: "Focus", kind: Kind::Line { max: 80 }, required: false, hint: "" },
-    Field { column: "hero_focus_detail", label: "Focus detail", kind: Kind::Paragraph { max: 300, rows: 2 }, required: false, hint: "" },
-    Field { column: "about_intro", label: "About paragraph", kind: Kind::Paragraph { max: 800, rows: 4 }, required: true, hint: "Opening of the About section." },
+    Field {
+        column: "name",
+        label: "Name",
+        kind: Kind::Line { max: 80 },
+        required: true,
+        hint: "Brand, header, and structured data.",
+    },
+    Field {
+        column: "job_title",
+        label: "Job title",
+        kind: Kind::Line { max: 80 },
+        required: true,
+        hint: "",
+    },
+    Field {
+        column: "location",
+        label: "Location",
+        kind: Kind::Line { max: 80 },
+        required: true,
+        hint: "",
+    },
+    Field {
+        column: "email",
+        label: "Email",
+        kind: Kind::Line { max: 254 },
+        required: true,
+        hint: "Used by the contact links.",
+    },
+    Field {
+        column: "availability",
+        label: "Availability",
+        kind: Kind::Line { max: 80 },
+        required: false,
+        hint: "Hero badge, e.g. Available for new work.",
+    },
+    Field {
+        column: "description",
+        label: "Meta description",
+        kind: Kind::Paragraph { max: 400, rows: 3 },
+        required: true,
+        hint: "Search and share previews.",
+    },
+    Field {
+        column: "hero_lead",
+        label: "Hero lead",
+        kind: Kind::Paragraph { max: 400, rows: 3 },
+        required: true,
+        hint: "First paragraph on the home page.",
+    },
+    Field {
+        column: "hero_focus",
+        label: "Focus",
+        kind: Kind::Line { max: 80 },
+        required: false,
+        hint: "",
+    },
+    Field {
+        column: "hero_focus_detail",
+        label: "Focus detail",
+        kind: Kind::Paragraph { max: 300, rows: 2 },
+        required: false,
+        hint: "",
+    },
+    Field {
+        column: "about_intro",
+        label: "About paragraph",
+        kind: Kind::Paragraph { max: 800, rows: 4 },
+        required: true,
+        hint: "Opening of the About section.",
+    },
 ];
 
-pub fn parse_profile(form: &std::collections::HashMap<String, String>) -> Result<ProfileRow, String> {
+pub fn parse_profile(
+    form: &std::collections::HashMap<String, String>,
+) -> Result<ProfileRow, String> {
     let take = |column: &str, min: usize, max: usize, label: &str, required: bool| {
         let raw = form.get(column).cloned().unwrap_or_default();
         let trimmed = raw.trim();
@@ -1107,7 +1332,17 @@ impl Site {
         );
         let profile = profile.unwrap_or_else(ProfileRow::fallback);
         let topics = contact_topics(&categories);
-        Self { profile, socials, categories, projects, groups, tools, principles, milestones, topics }
+        Self {
+            profile,
+            socials,
+            categories,
+            projects,
+            groups,
+            tools,
+            principles,
+            milestones,
+            topics,
+        }
     }
 }
 
@@ -1115,7 +1350,11 @@ impl Site {
 /// the site. Generic reasons come first.
 fn contact_topics(categories: &[CategoryRow]) -> Vec<String> {
     let mut topics = vec!["New project".to_string(), "Collaboration".to_string()];
-    topics.extend(categories.iter().map(|category| format!("{} work", category.label)));
+    topics.extend(
+        categories
+            .iter()
+            .map(|category| format!("{} work", category.label)),
+    );
     topics.push("Something else".to_string());
     topics
 }
@@ -1232,7 +1471,10 @@ mod tests {
         form.insert("name".into(), "Example Project!".into());
         form.insert("slug".into(), "".into());
         let values = parse_form(projects(), &form, &options()).unwrap();
-        let slug = values.iter().find(|(column, _)| column == "slug").map(|(_, value)| value.as_str());
+        let slug = values
+            .iter()
+            .find(|(column, _)| column == "slug")
+            .map(|(_, value)| value.as_str());
         assert_eq!(slug, Some("example-project"));
     }
 
@@ -1242,7 +1484,10 @@ mod tests {
         form.insert("name".into(), "Example Project".into());
         form.insert("slug".into(), "Custom Slug".into());
         let values = parse_form(projects(), &form, &options()).unwrap();
-        let slug = values.iter().find(|(column, _)| column == "slug").map(|(_, value)| value.as_str());
+        let slug = values
+            .iter()
+            .find(|(column, _)| column == "slug")
+            .map(|(_, value)| value.as_str());
         assert_eq!(slug, Some("custom-slug"));
     }
 
@@ -1267,11 +1512,17 @@ mod tests {
         let mut form = HashMap::new();
         form.insert("name".into(), "Name".into());
         form.insert("job_title".into(), "Engineer".into());
-        form.insert("description".into(), "A description long enough to pass.".into());
+        form.insert(
+            "description".into(),
+            "A description long enough to pass.".into(),
+        );
         form.insert("location".into(), "Nairobi".into());
         form.insert("email".into(), "not-an-email".into());
         form.insert("hero_lead".into(), "A lead paragraph long enough.".into());
-        form.insert("about_intro".into(), "An about paragraph long enough to pass.".into());
+        form.insert(
+            "about_intro".into(),
+            "An about paragraph long enough to pass.".into(),
+        );
         assert_eq!(
             parse_profile(&form).unwrap_err(),
             "That email address does not look right."
@@ -1281,8 +1532,14 @@ mod tests {
     #[test]
     fn contact_topics_follow_the_filters() {
         let topics = contact_topics(&[
-            CategoryRow { id: "mobile".into(), label: "Mobile & web".into() },
-            CategoryRow { id: "ai".into(), label: "Applied AI".into() },
+            CategoryRow {
+                id: "mobile".into(),
+                label: "Mobile & web".into(),
+            },
+            CategoryRow {
+                id: "ai".into(),
+                label: "Applied AI".into(),
+            },
         ]);
         assert_eq!(topics[0], "New project");
         assert!(topics.contains(&"Mobile & web work".to_string()));

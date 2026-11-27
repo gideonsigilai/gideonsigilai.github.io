@@ -31,7 +31,10 @@ async fn static_icon() -> Response {
     (
         StatusCode::OK,
         [
-            (header::CONTENT_TYPE, HeaderValue::from_static("image/svg+xml")),
+            (
+                header::CONTENT_TYPE,
+                HeaderValue::from_static("image/svg+xml"),
+            ),
             // The URL carries no content hash, so a long immutable lifetime
             // would strand returning visitors on a stale icon.
             (
@@ -46,11 +49,26 @@ async fn static_icon() -> Response {
 
 async fn static_font(axum::extract::Path(name): axum::extract::Path<String>) -> Response {
     let (media_type, bytes): (&str, &'static [u8]) = match name.as_str() {
-        "dm-sans-latin.woff2" => ("font/woff2", include_bytes!("../../static/fonts/dm-sans-latin.woff2")),
-        "instrument-serif-latin.woff2" => ("font/woff2", include_bytes!("../../static/fonts/instrument-serif-latin.woff2")),
-        "instrument-serif-italic-latin.woff2" => ("font/woff2", include_bytes!("../../static/fonts/instrument-serif-italic-latin.woff2")),
-        "DM-Sans-OFL.txt" => ("text/plain; charset=utf-8", include_bytes!("../../static/fonts/DM-Sans-OFL.txt")),
-        "Instrument-Serif-OFL.txt" => ("text/plain; charset=utf-8", include_bytes!("../../static/fonts/Instrument-Serif-OFL.txt")),
+        "dm-sans-latin.woff2" => (
+            "font/woff2",
+            include_bytes!("../../static/fonts/dm-sans-latin.woff2"),
+        ),
+        "instrument-serif-latin.woff2" => (
+            "font/woff2",
+            include_bytes!("../../static/fonts/instrument-serif-latin.woff2"),
+        ),
+        "instrument-serif-italic-latin.woff2" => (
+            "font/woff2",
+            include_bytes!("../../static/fonts/instrument-serif-italic-latin.woff2"),
+        ),
+        "DM-Sans-OFL.txt" => (
+            "text/plain; charset=utf-8",
+            include_bytes!("../../static/fonts/DM-Sans-OFL.txt"),
+        ),
+        "Instrument-Serif-OFL.txt" => (
+            "text/plain; charset=utf-8",
+            include_bytes!("../../static/fonts/Instrument-Serif-OFL.txt"),
+        ),
         _ => return StatusCode::NOT_FOUND.into_response(),
     };
     (
@@ -109,8 +127,10 @@ async fn private_page_robots(
     next: axum::middleware::Next,
 ) -> Response {
     let path = request.uri().path();
-    let private = path == "/messages" || path.starts_with("/messages/")
-        || path == "/health" || path.starts_with("/health/");
+    let private = path == "/messages"
+        || path.starts_with("/messages/")
+        || path == "/health"
+        || path.starts_with("/health/");
     let mut response = next.run(request).await;
     if private {
         response.headers_mut().insert(
@@ -154,13 +174,22 @@ pub fn site(state: AppState) -> Router {
                 .route("/images/plant_doc.jpg", get(images::plant_doc))
                 .route("/images/meioufei.png", get(images::meioufei))
                 .route("/images/onekitty.jpg", get(images::onekitty))
-                .route("/images/plant_doc_showcase.png", get(images::plant_showcase))
+                .route(
+                    "/images/plant_doc_showcase.png",
+                    get(images::plant_showcase),
+                )
                 .route("/images/onechurch.jpg", get(images::onechurch))
-                .route("/images/onechurch_showcase.jpg", get(images::onechurch_showcase))
+                .route(
+                    "/images/onechurch_showcase.jpg",
+                    get(images::onechurch_showcase),
+                )
                 .route("/images/rust-cover.png", get(images::rust_cover))
                 .route("/images/flutter-cover.png", get(images::flutter_cover))
                 .route("/images/mindpocket.jpg", get(images::mindpocket))
-                .route("/images/mindpocket_showcase.svg", get(images::mindpocket_showcase))
+                .route(
+                    "/images/mindpocket_showcase.svg",
+                    get(images::mindpocket_showcase),
+                )
                 .route("/images/writing/{filename}", get(images::post))
                 .route("/health", get(health))
                 .route("/favicon.ico", get(static_icon))
@@ -208,7 +237,10 @@ pub fn admin(state: AppState) -> Router {
         .route("/content/profile", post(admin::profile_save))
         .route("/content/{section}", post(admin::content_save))
         .route("/content/{section}/{id}", post(admin::content_update))
-        .route("/content/{section}/{id}/delete", post(admin::content_delete))
+        .route(
+            "/content/{section}/{id}/delete",
+            post(admin::content_delete),
+        )
         .route("/content/{section}/{id}/move", post(admin::content_move))
         .route("/conversations/{id}/reply", post(admin::reply))
         .route("/conversations/{id}/status", post(admin::set_status))
@@ -296,8 +328,14 @@ mod tests {
     #[test]
     fn portfolio_csp_names_the_backend_origin_for_both_directives() {
         let csp = site_csp("https://api.example.test");
-        assert!(csp.contains("connect-src 'self' https://api.example.test"), "{csp}");
-        assert!(csp.contains("form-action 'self' https://api.example.test"), "{csp}");
+        assert!(
+            csp.contains("connect-src 'self' https://api.example.test"),
+            "{csp}"
+        );
+        assert!(
+            csp.contains("form-action 'self' https://api.example.test"),
+            "{csp}"
+        );
         // The old single-origin policy would silently break the contact form.
         assert!(csp.contains("frame-ancestors 'none'"), "{csp}");
     }

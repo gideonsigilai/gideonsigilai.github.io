@@ -1,5 +1,5 @@
 use ammonia::Builder;
-use pulldown_cmark::{Options, Parser, html};
+use pulldown_cmark::{html, Options, Parser};
 
 use crate::state::{ApiError, ApiResult};
 
@@ -53,7 +53,10 @@ pub fn normalise_headings(html: &str, title: &str) -> String {
     }
     out.push_str(&html[cursor..]);
 
-    let escaped_title = title.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;");
+    let escaped_title = title
+        .replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;");
     let leading = format!("<h2>{escaped_title}</h2>");
     let trimmed = out.trim_start();
     if trimmed.starts_with(&leading) {
@@ -194,14 +197,20 @@ mod tests {
 
     #[test]
     fn slugs_are_ascii_and_collapse_separators() {
-        assert_eq!(slugify("State that does not fight you!"), "state-that-does-not-fight-you");
+        assert_eq!(
+            slugify("State that does not fight you!"),
+            "state-that-does-not-fight-you"
+        );
         assert_eq!(slugify("  Rust  &  Next.js  "), "rust-next-js");
         assert_eq!(slugify("---"), "");
     }
 
     #[test]
     fn excerpt_skips_headings_and_code() {
-        assert_eq!(derive_excerpt("# Title\n\nFirst line here.\n\n> quote"), "First line here.");
+        assert_eq!(
+            derive_excerpt("# Title\n\nFirst line here.\n\n> quote"),
+            "First line here."
+        );
         assert_eq!(derive_excerpt("```\ncode\n```\n\nReal text."), "Real text.");
     }
 
@@ -213,6 +222,9 @@ mod tests {
 
     #[test]
     fn plain_text_removes_markup() {
-        assert_eq!(plain_text("<p>Hello <strong>there</strong>.</p>"), "Hello there .");
+        assert_eq!(
+            plain_text("<p>Hello <strong>there</strong>.</p>"),
+            "Hello there ."
+        );
     }
 }

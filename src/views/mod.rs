@@ -1,4 +1,3 @@
-
 use serde_json::{json, Value};
 
 pub mod icons;
@@ -37,7 +36,11 @@ pub struct Page {
 }
 
 impl Page {
-    pub fn new(title: impl Into<String>, description: impl Into<String>, path: impl Into<String>) -> Self {
+    pub fn new(
+        title: impl Into<String>,
+        description: impl Into<String>,
+        path: impl Into<String>,
+    ) -> Self {
         let path = path.into();
         Self {
             title: title.into(),
@@ -79,7 +82,11 @@ impl Page {
 }
 
 pub fn json_ld(nodes: Vec<Value>) -> String {
-    let payload = if nodes.len() == 1 { nodes[0].clone() } else { Value::Array(nodes) };
+    let payload = if nodes.len() == 1 {
+        nodes[0].clone()
+    } else {
+        Value::Array(nodes)
+    };
     format!(
         r#"<script type="application/ld+json">{}</script>"#,
         serde_json::to_string(&payload)
@@ -121,7 +128,12 @@ pub fn render_page(
 }
 
 /// Renders a signed-in page into the dashboard shell (port 8051).
-pub fn render_admin_page(site: &Site, page: Page, state: &crate::state::AppState, body: String) -> String {
+pub fn render_admin_page(
+    site: &Site,
+    page: Page,
+    state: &crate::state::AppState,
+    body: String,
+) -> String {
     render_shell(ADMIN_LAYOUT, true, site, page, state, body)
 }
 
@@ -136,26 +148,28 @@ fn render_shell(
     // Absolutise the canonical so crawlers and share cards agree, using the
     // origin that actually serves the document: dashboard pages are canonical
     // on the dashboard origin, which is also why nothing links to them.
-    let base = if admin { state.config.admin_url.as_str() } else { state.base_url() };
-    let canonical = if page.canonical.starts_with("https://") || page.canonical.starts_with("http://") {
-        page.canonical.clone()
+    let base = if admin {
+        state.config.admin_url.as_str()
     } else {
-        format!("{base}{}", page.canonical)
+        state.base_url()
     };
+    let canonical =
+        if page.canonical.starts_with("https://") || page.canonical.starts_with("http://") {
+            page.canonical.clone()
+        } else {
+            format!("{base}{}", page.canonical)
+        };
     let profile = &site.profile;
     let social_image = page
         .social_image
         .clone()
         .unwrap_or_else(|| format!("{}/images/gideon-sigilai.png", state.base_url()));
-    let social_image_alt = page
-        .social_image_alt
-        .clone()
-        .unwrap_or_else(|| {
-            format!(
-                "{} — {}, {}. Branded portfolio artwork for mobile, web, and applied AI.",
-                profile.name, profile.job_title, profile.location
-            )
-        });
+    let social_image_alt = page.social_image_alt.clone().unwrap_or_else(|| {
+        format!(
+            "{} — {}, {}. Branded portfolio artwork for mobile, web, and applied AI.",
+            profile.name, profile.job_title, profile.location
+        )
+    });
     let social_image_type = if social_image.ends_with(".jpg") || social_image.ends_with(".jpeg") {
         "image/jpeg"
     } else if social_image.ends_with(".png") {
@@ -237,6 +251,50 @@ fn socials_json(socials: &[SocialRow]) -> Value {
     )
 }
 
+pub fn post_image_alt(post: &crate::content::PostRow) -> String {
+    if post.cover_note.trim().is_empty() {
+        format!("{} article cover", post.title)
+    } else {
+        format!("{} article cover — {}", post.title, post.cover_note.trim())
+    }
+}
+
+pub fn project_image_alt(project: &ProjectRow) -> String {
+    if project.tagline.trim().is_empty() {
+        format!(
+            "{} project cover — {}",
+            project.name,
+            project.summary.trim()
+        )
+    } else {
+        format!(
+            "{} project cover — {} {}",
+            project.name,
+            project.tagline.trim(),
+            project.summary.trim()
+        )
+    }
+}
+
+fn project_keywords(project: &ProjectRow) -> Vec<String> {
+    let categories = project
+        .category_label
+        .split('/')
+        .map(str::trim)
+        .filter(|term| !term.is_empty())
+        .map(str::to_string);
+    let mut keywords = Vec::new();
+    for term in project.stack().into_iter().chain(categories) {
+        if !keywords
+            .iter()
+            .any(|existing: &String| existing.eq_ignore_ascii_case(&term))
+        {
+            keywords.push(term);
+        }
+    }
+    keywords
+}
+
 pub fn person_schema(site: &Site, base: &str) -> Value {
     let profile = &site.profile;
     let mut names = profile.name.split_whitespace();
@@ -300,7 +358,12 @@ pub fn breadcrumb_schema(base: &str, items: &[(&str, &str)]) -> Value {
     })
 }
 
-pub fn blog_posting_schema(site: &Site, base: &str, post: &crate::content::PostRow, plain: &str) -> Value {
+pub fn blog_posting_schema(
+    site: &Site,
+    base: &str,
+    post: &crate::content::PostRow,
+    plain: &str,
+) -> Value {
     let tags = post.tags();
     let image = if post.cover_image.is_empty() {
         cover_art_schema(
@@ -309,7 +372,9 @@ pub fn blog_posting_schema(site: &Site, base: &str, post: &crate::content::PostR
             &post_image_alt(post),
         )
     } else {
-        let url = if post.cover_image.starts_with("http://") || post.cover_image.starts_with("https://") {
+        let url = if post.cover_image.starts_with("http://")
+            || post.cover_image.starts_with("https://")
+        {
             post.cover_image.clone()
         } else {
             format!("{base}{}", post.cover_image)
@@ -433,7 +498,11 @@ pub fn social_row(socials: &[SocialRow], with_handles: bool) -> String {
         } else {
             ""
         };
-        let label = if with_handles { &social.label } else { &social.handle };
+        let label = if with_handles {
+            &social.label
+        } else {
+            &social.handle
+        };
         out.push_str(&format!(
             r#"<a class="social-link" href="{}"{} aria-label="{} — {}">{}{}</a>"#,
             escape_html(&social.href),
@@ -452,6 +521,12 @@ pub fn social_row(socials: &[SocialRow], with_handles: bool) -> String {
 pub fn topic_options(topics: &[String]) -> String {
     topics
         .iter()
-        .map(|topic| format!(r#"<option value="{}">{}</option>"#, escape_html(topic), escape_html(topic)))
+        .map(|topic| {
+            format!(
+                r#"<option value="{}">{}</option>"#,
+                escape_html(topic),
+                escape_html(topic)
+            )
+        })
         .collect()
 }

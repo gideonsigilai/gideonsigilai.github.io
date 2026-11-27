@@ -80,7 +80,10 @@ impl Config {
                     .ok()
                     .and_then(|path| path.parent().map(std::path::Path::to_path_buf))
                     .unwrap_or_else(|| std::path::PathBuf::from("."));
-                base.join("data").join("portfolio.db").to_string_lossy().into_owned()
+                base.join("data")
+                    .join("portfolio.db")
+                    .to_string_lossy()
+                    .into_owned()
             }),
             admin_username: std::env::var("ADMIN_USERNAME").unwrap_or_else(|_| "gideon".into()),
             admin_password: std::env::var("ADMIN_PASSWORD").ok(),
@@ -97,7 +100,8 @@ fn bind(specific: &str, legacy: &str, port: u16) -> Result<SocketAddr, String> {
     let raw = std::env::var(specific)
         .or_else(|_| std::env::var(legacy))
         .unwrap_or_else(|_| format!("127.0.0.1:{port}"));
-    raw.parse().map_err(|_| format!("invalid {specific}: {raw}"))
+    raw.parse()
+        .map_err(|_| format!("invalid {specific}: {raw}"))
 }
 
 fn dotenv_load() {
@@ -127,7 +131,9 @@ pub struct RateLimiter {
 
 impl RateLimiter {
     pub fn new() -> Self {
-        Self { hits: std::collections::HashMap::new() }
+        Self {
+            hits: std::collections::HashMap::new(),
+        }
     }
 
     /// Sliding-window limiter. Returns false when the caller must back off.
@@ -185,7 +191,12 @@ pub struct ApiError {
 
 impl ApiError {
     pub fn new(status: StatusCode, code: &'static str, message: impl Into<String>) -> Self {
-        Self { status, code, message: message.into(), location: None }
+        Self {
+            status,
+            code,
+            message: message.into(),
+            location: None,
+        }
     }
 
     pub fn bad(message: impl Into<String>) -> Self {
@@ -193,7 +204,11 @@ impl ApiError {
     }
 
     pub fn unauthorized() -> Self {
-        Self::new(StatusCode::UNAUTHORIZED, "unauthorized", "Sign in to continue.")
+        Self::new(
+            StatusCode::UNAUTHORIZED,
+            "unauthorized",
+            "Sign in to continue.",
+        )
     }
 
     pub fn forbidden() -> Self {
@@ -201,7 +216,11 @@ impl ApiError {
     }
 
     pub fn not_found() -> Self {
-        Self::new(StatusCode::NOT_FOUND, "not_found", "That resource does not exist.")
+        Self::new(
+            StatusCode::NOT_FOUND,
+            "not_found",
+            "That resource does not exist.",
+        )
     }
 
     pub fn internal(err: impl std::fmt::Display) -> Self {
@@ -223,7 +242,11 @@ impl ApiError {
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         if let Some(location) = self.location {
-            return (StatusCode::SEE_OTHER, [(axum::http::header::LOCATION, location)]).into_response();
+            return (
+                StatusCode::SEE_OTHER,
+                [(axum::http::header::LOCATION, location)],
+            )
+                .into_response();
         }
         (
             self.status,

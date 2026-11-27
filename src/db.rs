@@ -25,7 +25,10 @@ pub async fn connect(database_path: &str) -> Result<SqlitePool, Box<dyn std::err
         .journal_mode(SqliteJournalMode::Wal)
         .foreign_keys(true)
         .busy_timeout(Duration::from_secs(5));
-    Ok(SqlitePoolOptions::new().max_connections(8).connect_with(options).await?)
+    Ok(SqlitePoolOptions::new()
+        .max_connections(8)
+        .connect_with(options)
+        .await?)
 }
 
 /// Applies the schema idempotently. Each statement runs separately because

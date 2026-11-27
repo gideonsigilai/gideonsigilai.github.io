@@ -42,7 +42,9 @@ pub async fn project(State(state): State<AppState>, Path(filename): Path<String>
     let Some(project) = portfolio::visible_project(&state.db, slug).await else {
         return StatusCode::NOT_FOUND.into_response();
     };
-    let profile = portfolio::profile(&state.db).await.unwrap_or_else(ProfileRow::fallback);
+    let profile = portfolio::profile(&state.db)
+        .await
+        .unwrap_or_else(ProfileRow::fallback);
     svg_response(cover(
         &format!("{} — project artwork by {}", project.name, profile.name),
         &project.summary,
@@ -54,14 +56,22 @@ pub async fn project(State(state): State<AppState>, Path(filename): Path<String>
     ))
 }
 
-pub async fn post(State(state): State<AppState>, Path(filename): Path<String>) -> ApiResult<Response> {
+pub async fn post(
+    State(state): State<AppState>,
+    Path(filename): Path<String>,
+) -> ApiResult<Response> {
     let Some(slug) = filename.strip_suffix(".svg") else {
         return Ok(StatusCode::NOT_FOUND.into_response());
     };
-    let Some(post) = published_by_slug(&state.db, slug).await.map_err(ApiError::internal)? else {
+    let Some(post) = published_by_slug(&state.db, slug)
+        .await
+        .map_err(ApiError::internal)?
+    else {
         return Ok(StatusCode::NOT_FOUND.into_response());
     };
-    let profile = portfolio::profile(&state.db).await.unwrap_or_else(ProfileRow::fallback);
+    let profile = portfolio::profile(&state.db)
+        .await
+        .unwrap_or_else(ProfileRow::fallback);
     let tags = post.tags();
     let accent = match tags.first().map(String::as_str) {
         Some("Flutter") => "lime",
@@ -71,7 +81,9 @@ pub async fn post(State(state): State<AppState>, Path(filename): Path<String>) -
     Ok(svg_response(cover(
         &format!("Cover artwork for {} by {}", post.title, profile.name),
         &post.excerpt,
-        tags.first().map(String::as_str).unwrap_or("Engineering notes"),
+        tags.first()
+            .map(String::as_str)
+            .unwrap_or("Engineering notes"),
         &post.title,
         "Notes from the build",
         &profile.name,
@@ -85,7 +97,10 @@ fn svg_response(body: String) -> Response {
             (header::CONTENT_TYPE, "image/svg+xml; charset=utf-8"),
             // Stable URLs must reflect publishing, visibility, and content edits.
             (header::CACHE_CONTROL, "no-cache"),
-            (header::CONTENT_SECURITY_POLICY, "default-src 'none'; style-src 'unsafe-inline'; sandbox"),
+            (
+                header::CONTENT_SECURITY_POLICY,
+                "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+            ),
         ],
         body,
     )
@@ -94,7 +109,15 @@ fn svg_response(body: String) -> Response {
 
 /// Small vector covers, not photographs or product screenshots. All labels come
 /// from the same published records as the landing pages; there is no JS fetch.
-fn cover(title: &str, description: &str, kicker: &str, heading: &str, label: &str, author: &str, accent: &str) -> String {
+fn cover(
+    title: &str,
+    description: &str,
+    kicker: &str,
+    heading: &str,
+    label: &str,
+    author: &str,
+    accent: &str,
+) -> String {
     let (paper, ink, panel) = match accent {
         "lime" => ("#dce8c5", "#20261b", "#edf2e4"),
         "sky" => ("#263f37", "#edf2d9", "#355247"),
@@ -136,11 +159,18 @@ fn text_lines(text: &str, columns: usize, rows: usize) -> String {
         }
         let mut end = prefix(remaining, columns).len();
         if end < remaining.len() {
-            end = remaining[..end].rfind(' ').filter(|&index| index > 0).unwrap_or(end);
+            end = remaining[..end]
+                .rfind(' ')
+                .filter(|&index| index > 0)
+                .unwrap_or(end);
         }
         let line = &remaining[..end];
         remaining = remaining[end..].trim_start();
-        let ellipsis = if row + 1 == rows && !remaining.is_empty() { "…" } else { "" };
+        let ellipsis = if row + 1 == rows && !remaining.is_empty() {
+            "…"
+        } else {
+            ""
+        };
         let _ = write!(
             out,
             r#"<tspan x="64" dy="{}">{}{ellipsis}</tspan>"#,
@@ -197,19 +227,47 @@ pub async fn plant_showcase() -> Response {
 }
 pub async fn onechurch() -> Response {
     const BYTES: &[u8] = include_bytes!("../../images/onechurch.jpg");
-    ([(header::CONTENT_TYPE, "image/jpeg"), (header::CACHE_CONTROL, "public, max-age=31536000, immutable")], BYTES).into_response()
+    (
+        [
+            (header::CONTENT_TYPE, "image/jpeg"),
+            (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
+        ],
+        BYTES,
+    )
+        .into_response()
 }
 pub async fn onechurch_showcase() -> Response {
     const BYTES: &[u8] = include_bytes!("../../images/onechurch_showcase.jpg");
-    ([(header::CONTENT_TYPE, "image/jpeg"), (header::CACHE_CONTROL, "public, max-age=31536000, immutable")], BYTES).into_response()
+    (
+        [
+            (header::CONTENT_TYPE, "image/jpeg"),
+            (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
+        ],
+        BYTES,
+    )
+        .into_response()
 }
 pub async fn rust_cover() -> Response {
     const BYTES: &[u8] = include_bytes!("../../images/rust-cover.png");
-    ([(header::CONTENT_TYPE, "image/png"), (header::CACHE_CONTROL, "public, max-age=31536000, immutable")], BYTES).into_response()
+    (
+        [
+            (header::CONTENT_TYPE, "image/png"),
+            (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
+        ],
+        BYTES,
+    )
+        .into_response()
 }
 pub async fn flutter_cover() -> Response {
     const BYTES: &[u8] = include_bytes!("../../images/flutter-cover.png");
-    ([(header::CONTENT_TYPE, "image/png"), (header::CACHE_CONTROL, "public, max-age=31536000, immutable")], BYTES).into_response()
+    (
+        [
+            (header::CONTENT_TYPE, "image/png"),
+            (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
+        ],
+        BYTES,
+    )
+        .into_response()
 }
 
 pub async fn mindpocket() -> Response {
@@ -271,10 +329,9 @@ pub async fn mindpocket_showcase() -> Response {
         .into_response()
 }
 
-
-
-
-
 fn prefix(text: &str, chars: usize) -> &str {
-    &text[..text.char_indices().nth(chars).map_or(text.len(), |(index, _)| index)]
+    &text[..text
+        .char_indices()
+        .nth(chars)
+        .map_or(text.len(), |(index, _)| index)]
 }

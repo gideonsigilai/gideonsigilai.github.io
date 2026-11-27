@@ -10,22 +10,21 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::content::{
-    add_message, all_posts, conversation_by_id, conversations, conversation_stats, count_posts,
-    delete_post, delete_session, insert_post, insert_session, message_thread, now_iso,
-    post_by_id, set_conversation_status, stored_admin_hash, update_post, AdminSessionRow, Draft,
+    add_message, all_posts, conversation_by_id, conversation_stats, conversations, count_posts,
+    delete_post, delete_session, insert_post, insert_session, message_thread, now_iso, post_by_id,
+    set_conversation_status, stored_admin_hash, update_post, AdminSessionRow, Draft,
 };
 use crate::portfolio::{self, Collection, LookupOptions};
-use crate::routes::auth::{
-    client_ip, csrf_ok, random_token, session_from_headers, AdminSession,
-};
+use crate::routes::auth::{client_ip, csrf_ok, random_token, session_from_headers, AdminSession};
 use crate::routes::contact::form_fields;
 use crate::state::{ApiError, ApiResult, AppState};
 use crate::template::render;
 use crate::text::{
-    clean_text, derive_excerpt, normalise_headings, render_markdown, reading_minutes, slugify,
+    clean_text, derive_excerpt, normalise_headings, reading_minutes, render_markdown, slugify,
 };
 use crate::views::{
-    render_admin_page, short_date, Page, ADMIN_ANALYTICS, ADMIN_CONTENT, ADMIN_INBOX, ADMIN_POSTS, LOGIN,
+    render_admin_page, short_date, Page, ADMIN_ANALYTICS, ADMIN_CONTENT, ADMIN_INBOX, ADMIN_POSTS,
+    LOGIN,
 };
 
 // ---------------------------------------------------------------- sign in / out
@@ -52,7 +51,10 @@ pub async fn login(
     body: axum::body::Bytes,
 ) -> ApiResult<Response> {
     let ip = client_ip(&headers, state.config.trust_proxy_ip);
-    if !state.throttle(format!("login:{ip}"), 8, Duration::from_secs(900)).await {
+    if !state
+        .throttle(format!("login:{ip}"), 8, Duration::from_secs(900))
+        .await
+    {
         return Err(ApiError::new(
             StatusCode::TOO_MANY_REQUESTS,
             "rate_limited",
@@ -82,14 +84,22 @@ pub async fn login(
 
     let username_ok = {
         use subtle::ConstantTimeEq;
-        bool::from(state.config.admin_username.as_bytes().ct_eq(payload.username.trim().as_bytes()))
+        bool::from(
+            state
+                .config
+                .admin_username
+                .as_bytes()
+                .ct_eq(payload.username.trim().as_bytes()),
+        )
     };
     let hash = admin_hash(&state).await?;
     let password = payload.password.clone();
     let verified = tokio::task::spawn_blocking(move || {
         use argon2::{Argon2, PasswordHash, PasswordVerifier};
         match PasswordHash::new(&hash) {
-            Ok(parsed) => Argon2::default().verify_password(password.as_bytes(), &parsed).is_ok(),
+            Ok(parsed) => Argon2::default()
+                .verify_password(password.as_bytes(), &parsed)
+                .is_ok(),
             Err(_) => false,
         }
     })
@@ -121,13 +131,20 @@ pub async fn login(
     let csrf = random_token(24);
     let expires = (chrono::Utc::now() + chrono::Duration::hours(12))
         .to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
-    insert_session(&state.db, &crate::content::hash_token(&session_token), &csrf, &expires)
-        .await
-        .map_err(ApiError::internal)?;
+    insert_session(
+        &state.db,
+        &crate::content::hash_token(&session_token),
+        &csrf,
+        &expires,
+    )
+    .await
+    .map_err(ApiError::internal)?;
 
     if is_json {
-        return Ok(Json(json!({ "session": session_token, "csrf": csrf, "expires_at": expires }))
-            .into_response());
+        return Ok(
+            Json(json!({ "session": session_token, "csrf": csrf, "expires_at": expires }))
+                .into_response(),
+        );
     }
 
     let mut response = Redirect::to("/").into_response();
@@ -196,7 +213,10 @@ pub async fn inbox(
 
     let mut detail = serde_json::Value::Null;
     if let Some(id) = &selected_id {
-        if let Some(conversation) = conversation_by_id(&state.db, id).await.map_err(ApiError::internal)? {
+        if let Some(conversation) = conversation_by_id(&state.db, id)
+            .await
+            .map_err(ApiError::internal)?
+        {
             let thread = message_thread(&state.db, &conversation.id)
                 .await
                 .map_err(ApiError::internal)?;
@@ -250,7 +270,9 @@ pub async fn posts(
     let (_, published) = count_posts(&state.db).await;
 
     let editing = match &query.id {
-        Some(id) => post_by_id(&state.db, id).await.map_err(ApiError::internal)?,
+        Some(id) => post_by_id(&state.db, id)
+            .await
+            .map_err(ApiError::internal)?,
         None => None,
     };
 
@@ -432,7 +454,14 @@ pub async fn content(
                 }
             }
         }
-        None => (Vec::new(), String::new(), String::new(), true, String::new(), None),
+        None => (
+            Vec::new(),
+            String::new(),
+            String::new(),
+            true,
+            String::new(),
+            None,
+        ),
     };
 
     let profile_fields = if is_profile {
@@ -476,22 +505,25 @@ pub async fn content(
 }
 
 /// Prefill values for a brand-new row.
-fn default_values(
-    collection: &Collection,
-    options: &LookupOptions,
-) -> Vec<(String, String)> {
+fn default_values(collection: &Collection, options: &LookupOptions) -> Vec<(String, String)> {
     collection
         .fields
         .iter()
         .map(|field| {
             let value = match field.kind {
-                portfolio::Kind::Lookup(portfolio::Lookup::Categories) => {
-                    options.categories.first().map(|(id, _)| id.clone()).unwrap_or_default()
+                portfolio::Kind::Lookup(portfolio::Lookup::Categories) => options
+                    .categories
+                    .first()
+                    .map(|(id, _)| id.clone())
+                    .unwrap_or_default(),
+                portfolio::Kind::Lookup(portfolio::Lookup::Groups) => options
+                    .groups
+                    .first()
+                    .map(|(id, _)| id.clone())
+                    .unwrap_or_default(),
+                portfolio::Kind::Choice(allowed) => {
+                    allowed.first().copied().unwrap_or_default().to_string()
                 }
-                portfolio::Kind::Lookup(portfolio::Lookup::Groups) => {
-                    options.groups.first().map(|(id, _)| id.clone()).unwrap_or_default()
-                }
-                portfolio::Kind::Choice(allowed) => allowed.first().copied().unwrap_or_default().to_string(),
                 portfolio::Kind::Toggle => "1".to_string(),
                 _ => String::new(),
             };
@@ -536,24 +568,32 @@ pub async fn analytics_view(
         .map_err(ApiError::internal)?;
 
     let site = portfolio::Site::load(&state.db).await;
-    let body = render(ADMIN_ANALYTICS, &json!({
-        "total_views": summary.total_views,
-        "unique_visitors": summary.unique_visitors,
-        "today_views": summary.today_views,
-        "today_visitors": summary.today_visitors,
-        "mobile_pct": summary.mobile_pct,
-        "top_device": summary.top_device,
-        "top_os": summary.top_os,
-        "top_browser": summary.top_browser,
-        "devices": summary.devices,
-        "os_list": summary.os_list,
-        "browsers": summary.browsers,
-        "viewports": summary.viewports,
-        "trend": summary.trend,
-        "recent": summary.recent,
-    }));
+    let body = render(
+        ADMIN_ANALYTICS,
+        &json!({
+            "total_views": summary.total_views,
+            "unique_visitors": summary.unique_visitors,
+            "today_views": summary.today_views,
+            "today_visitors": summary.today_visitors,
+            "mobile_pct": summary.mobile_pct,
+            "top_device": summary.top_device,
+            "top_os": summary.top_os,
+            "top_browser": summary.top_browser,
+            "devices": summary.devices,
+            "os_list": summary.os_list,
+            "browsers": summary.browsers,
+            "viewports": summary.viewports,
+            "trend": summary.trend,
+            "recent": summary.recent,
+        }),
+    );
 
-    let page = Page::new("Visitor Analytics", "Device and audience telemetry.", "/analytics").noindex();
+    let page = Page::new(
+        "Visitor Analytics",
+        "Device and audience telemetry.",
+        "/analytics",
+    )
+    .noindex();
     Ok(Html(render_admin_page(&site, page, &state, body)).into_response())
 }
 
@@ -569,14 +609,29 @@ pub async fn content_save(
         return Err(ApiError::not_found().redirect("/content"));
     };
     let options = LookupOptions::load(&state.db).await;
-    let values = portfolio::parse_form(collection, &form, &options)
-        .map_err(|message| ApiError::bad(message.clone()).redirect(message_url(collection.slug, None, "error", &message)))?;
+    let values = portfolio::parse_form(collection, &form, &options).map_err(|message| {
+        ApiError::bad(message.clone()).redirect(message_url(
+            collection.slug,
+            None,
+            "error",
+            &message,
+        ))
+    })?;
     match portfolio::insert_row_with_id(&state.db, collection, None, &values).await {
-        Ok(id) => Ok(Redirect::to(&message_url(collection.slug, Some(&id), "saved", "Saved.")).into_response()),
+        Ok(id) => Ok(
+            Redirect::to(&message_url(collection.slug, Some(&id), "saved", "Saved."))
+                .into_response(),
+        ),
         Err(error) if crate::content::unique_violation(&error) => {
             let message = "That identifier is already used by another entry.";
-            Err(ApiError::new(StatusCode::CONFLICT, "slug_taken", message)
-                .redirect(message_url(collection.slug, None, "error", message)))
+            Err(
+                ApiError::new(StatusCode::CONFLICT, "slug_taken", message).redirect(message_url(
+                    collection.slug,
+                    None,
+                    "error",
+                    message,
+                )),
+            )
         }
         Err(error) => Err(ApiError::internal(error).redirect(section_url(collection.slug, None))),
     }
@@ -594,17 +649,34 @@ pub async fn content_update(
         return Err(ApiError::not_found().redirect("/content"));
     };
     let options = LookupOptions::load(&state.db).await;
-    let values = portfolio::parse_form(collection, &form, &options)
-        .map_err(|message| ApiError::bad(message.clone()).redirect(message_url(collection.slug, Some(&id), "error", &message)))?;
+    let values = portfolio::parse_form(collection, &form, &options).map_err(|message| {
+        ApiError::bad(message.clone()).redirect(message_url(
+            collection.slug,
+            Some(&id),
+            "error",
+            &message,
+        ))
+    })?;
     match portfolio::update_row(&state.db, collection, &id, &values).await {
-        Ok(true) => Ok(Redirect::to(&message_url(collection.slug, Some(&id), "saved", "Saved.")).into_response()),
+        Ok(true) => Ok(
+            Redirect::to(&message_url(collection.slug, Some(&id), "saved", "Saved."))
+                .into_response(),
+        ),
         Ok(false) => Err(ApiError::not_found().redirect(section_url(collection.slug, None))),
         Err(error) if crate::content::unique_violation(&error) => {
             let message = "That identifier is already used by another entry.";
-            Err(ApiError::new(StatusCode::CONFLICT, "slug_taken", message)
-                .redirect(message_url(collection.slug, Some(&id), "error", message)))
+            Err(
+                ApiError::new(StatusCode::CONFLICT, "slug_taken", message).redirect(message_url(
+                    collection.slug,
+                    Some(&id),
+                    "error",
+                    message,
+                )),
+            )
         }
-        Err(error) => Err(ApiError::internal(error).redirect(section_url(collection.slug, Some(&id)))),
+        Err(error) => {
+            Err(ApiError::internal(error).redirect(section_url(collection.slug, Some(&id))))
+        }
     }
 }
 
@@ -636,7 +708,11 @@ pub async fn content_move(
     let Some(collection) = portfolio::collection(&section) else {
         return Err(ApiError::not_found().redirect("/content"));
     };
-    let delta = if form.get("direction").map(String::as_str) == Some("up") { -1 } else { 1 };
+    let delta = if form.get("direction").map(String::as_str) == Some("up") {
+        -1
+    } else {
+        1
+    };
     portfolio::move_row(&state.db, collection, &id, delta)
         .await
         .map_err(|error| ApiError::internal(error).redirect(section_url(collection.slug, None)))?;
@@ -651,8 +727,7 @@ pub async fn profile_save(
     let form = form_fields(&body);
     require_csrf_headers(&session, &form)?;
     let profile = portfolio::parse_profile(&form).map_err(|message| {
-        ApiError::bad(message.clone())
-            .redirect(message_url("profile", None, "error", &message))
+        ApiError::bad(message.clone()).redirect(message_url("profile", None, "error", &message))
     })?;
     portfolio::save_profile(&state.db, &profile)
         .await
@@ -685,7 +760,10 @@ fn message_url(section: &str, id: Option<&str>, key: &str, message: &str) -> Str
 
 // ---------------------------------------------------------------- mutations
 
-fn require_csrf(session: &AdminSession, form: &std::collections::HashMap<String, String>) -> ApiResult<()> {
+fn require_csrf(
+    session: &AdminSession,
+    form: &std::collections::HashMap<String, String>,
+) -> ApiResult<()> {
     let supplied = form.get("csrf").map(String::as_str).unwrap_or_default();
     if csrf_ok(session, supplied) {
         Ok(())
@@ -716,7 +794,12 @@ pub async fn reply(
 ) -> ApiResult<Response> {
     let form = form_fields(&body);
     require_csrf(&session, &form)?;
-    let text = clean_text(form.get("body").map(String::as_str).unwrap_or_default(), 1, 4000, "Reply")?;
+    let text = clean_text(
+        form.get("body").map(String::as_str).unwrap_or_default(),
+        1,
+        4000,
+        "Reply",
+    )?;
     let close = form.get("close").is_some();
     conversation_by_id(&state.db, &id)
         .await
@@ -750,9 +833,16 @@ pub async fn set_status(
     Ok(Redirect::to(&format!("/?conversation={id}")).into_response())
 }
 
-async fn draft_from_form(form: &std::collections::HashMap<String, String>) -> ApiResult<(Draft, String)> {
-    let title = clean_text(form.get("title").map(String::as_str).unwrap_or_default(), 3, 140, "Title")
-        .map_err(|error| error.redirect("/posts"))?;
+async fn draft_from_form(
+    form: &std::collections::HashMap<String, String>,
+) -> ApiResult<(Draft, String)> {
+    let title = clean_text(
+        form.get("title").map(String::as_str).unwrap_or_default(),
+        3,
+        140,
+        "Title",
+    )
+    .map_err(|error| error.redirect("/posts"))?;
     let markdown = clean_text(
         form.get("markdown").map(String::as_str).unwrap_or_default(),
         40,
@@ -776,7 +866,12 @@ async fn draft_from_form(form: &std::collections::HashMap<String, String>) -> Ap
         _ => "draft".to_string(),
     };
 
-    let excerpt = match form.get("excerpt").map(String::as_str).unwrap_or_default().trim() {
+    let excerpt = match form
+        .get("excerpt")
+        .map(String::as_str)
+        .unwrap_or_default()
+        .trim()
+    {
         "" => derive_excerpt(&markdown),
         value if value.chars().count() < 10 => {
             return Err(ApiError::bad("Excerpt is too short.").redirect("/posts"))
@@ -789,7 +884,12 @@ async fn draft_from_form(form: &std::collections::HashMap<String, String>) -> Ap
 
     let tags: Vec<String> = form
         .get("tags")
-        .map(|value| value.split(',').map(|tag| tag.trim().to_string()).collect::<Vec<_>>())
+        .map(|value| {
+            value
+                .split(',')
+                .map(|tag| tag.trim().to_string())
+                .collect::<Vec<_>>()
+        })
         .unwrap_or_default()
         .into_iter()
         .filter(|tag| !tag.is_empty() && tag.chars().count() <= 24)
@@ -809,7 +909,6 @@ async fn draft_from_form(form: &std::collections::HashMap<String, String>) -> Ap
         .unwrap_or_default()
         .trim()
         .to_string();
-
 
     Ok((
         Draft {
@@ -838,10 +937,12 @@ pub async fn create_post(
     let (draft, _) = draft_from_form(&form).await?;
     match insert_post(&state.db, draft).await {
         Ok(id) => Ok(Redirect::to(&format!("/posts?id={id}")).into_response()),
-        Err(error) if crate::content::unique_violation(&error) => {
-            Err(ApiError::new(StatusCode::CONFLICT, "slug_taken", "That slug is already used by another post.")
-                .redirect("/posts"))
-        }
+        Err(error) if crate::content::unique_violation(&error) => Err(ApiError::new(
+            StatusCode::CONFLICT,
+            "slug_taken",
+            "That slug is already used by another post.",
+        )
+        .redirect("/posts")),
         Err(error) => Err(ApiError::internal(error).redirect("/posts")),
     }
 }
@@ -858,10 +959,12 @@ pub async fn update_existing_post(
     match update_post(&state.db, &id, draft).await {
         Ok(Some(slug)) => Ok(Redirect::to(&format!("/posts?id={id}&saved={slug}")).into_response()),
         Ok(None) => Err(ApiError::not_found().redirect("/posts")),
-        Err(error) if crate::content::unique_violation(&error) => {
-            Err(ApiError::new(StatusCode::CONFLICT, "slug_taken", "That slug is already used by another post.")
-                .redirect("/posts"))
-        }
+        Err(error) if crate::content::unique_violation(&error) => Err(ApiError::new(
+            StatusCode::CONFLICT,
+            "slug_taken",
+            "That slug is already used by another post.",
+        )
+        .redirect("/posts")),
         Err(error) => Err(ApiError::internal(error).redirect("/posts")),
     }
 }
@@ -874,16 +977,16 @@ pub async fn destroy_post(
 ) -> ApiResult<Response> {
     let form = form_fields(&body);
     require_csrf(&session, &form)?;
-    if !delete_post(&state.db, &id).await.map_err(ApiError::internal)? {
+    if !delete_post(&state.db, &id)
+        .await
+        .map_err(ApiError::internal)?
+    {
         return Err(ApiError::not_found().redirect("/posts"));
     }
     Ok(Redirect::to("/posts").into_response())
 }
 
-pub async fn status_check(
-    State(state): State<AppState>,
-    headers: HeaderMap,
-) -> Response {
+pub async fn status_check(State(state): State<AppState>, headers: HeaderMap) -> Response {
     match session_from_headers(&state, &headers).await {
         Some(_) => Json(json!({ "authenticated": true, "at": now_iso() })).into_response(),
         None => (
@@ -901,7 +1004,10 @@ fn cookie_flags() -> &'static str {
 }
 
 fn set_session_cookies(response: &mut Response, token: &str, csrf: &str) {
-    let token_cookie = format!("gs_session={token}; {flags}; Max-Age=43200", flags = cookie_flags());
+    let token_cookie = format!(
+        "gs_session={token}; {flags}; Max-Age=43200",
+        flags = cookie_flags()
+    );
     // The CSRF value must be readable so the form can echo it back.
     let csrf_cookie = format!("gs_csrf={csrf}; Path=/; SameSite=Strict; Max-Age=43200");
     if let Ok(value) = header::HeaderValue::from_str(&token_cookie) {

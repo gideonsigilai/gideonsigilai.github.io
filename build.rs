@@ -51,9 +51,9 @@ fn main() {
             eprintln!("{}", String::from_utf8_lossy(&result.stderr));
             panic!("bun run web/build.ts failed: {}", result.status);
         }
-        Err(error) => panic!(
-            "bun is required to build the web apps (install from https://bun.sh): {error}"
-        ),
+        Err(error) => {
+            panic!("bun is required to build the web apps (install from https://bun.sh): {error}")
+        }
     }
 
     for document in ["portfolio.html", "admin.html"] {

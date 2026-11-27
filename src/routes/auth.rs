@@ -49,7 +49,10 @@ pub async fn session_from_headers(state: &AppState, headers: &HeaderMap) -> Opti
     let expires = (chrono::Utc::now() + chrono::Duration::hours(SESSION_TTL_HOURS))
         .to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
     touch_session(&state.db, &token_hash, &expires).await;
-    Some(AdminSession { token_hash, csrf: row.csrf })
+    Some(AdminSession {
+        token_hash,
+        csrf: row.csrf,
+    })
 }
 
 pub fn csrf_ok(session: &AdminSession, supplied: &str) -> bool {
@@ -59,7 +62,10 @@ pub fn csrf_ok(session: &AdminSession, supplied: &str) -> bool {
 
 pub fn client_ip(headers: &HeaderMap, trust_proxy: bool) -> String {
     if trust_proxy {
-        if let Some(forwarded) = headers.get("x-forwarded-for").and_then(|value| value.to_str().ok()) {
+        if let Some(forwarded) = headers
+            .get("x-forwarded-for")
+            .and_then(|value| value.to_str().ok())
+        {
             if let Some(first) = forwarded.split(',').next() {
                 let candidate = first.trim();
                 if !candidate.is_empty() {

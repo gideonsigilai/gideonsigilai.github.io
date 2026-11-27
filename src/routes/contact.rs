@@ -10,11 +10,11 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::content::{
-    add_message, conversation_by_token, create_conversation, hash_token, message_thread, ConversationRow,
-    NewConversation,
+    add_message, conversation_by_token, create_conversation, hash_token, message_thread,
+    ConversationRow, NewConversation,
 };
-use crate::routes::auth::{client_ip, random_token};
 use crate::portfolio::Site;
+use crate::routes::auth::{client_ip, random_token};
 use crate::state::{ApiError, ApiResult, AppState};
 use crate::template::render;
 use crate::text::{clean_text, looks_like_email};
@@ -36,7 +36,10 @@ async fn persist_contact(
     input: ContactPayload,
 ) -> ApiResult<Option<String>> {
     let ip = client_ip(headers, state.config.trust_proxy_ip);
-    if !state.throttle(format!("contact:{ip}"), 5, Duration::from_secs(600)).await {
+    if !state
+        .throttle(format!("contact:{ip}"), 5, Duration::from_secs(600))
+        .await
+    {
         return Err(ApiError::new(
             StatusCode::TOO_MANY_REQUESTS,
             "rate_limited",
@@ -111,14 +114,23 @@ pub async fn submit_contact(
     match persist_contact(&state, &headers, payload).await {
         Ok(token) => {
             if wants_json {
-                let url = token.as_deref()
+                let url = token
+                    .as_deref()
                     .map(|token| format!("{}/messages/{token}", state.config.threads_url));
-                (StatusCode::CREATED, Json(json!({ "token": token, "url": url }))).into_response()
+                (
+                    StatusCode::CREATED,
+                    Json(json!({ "token": token, "url": url })),
+                )
+                    .into_response()
             } else {
                 // Private threads stay live on the server even when the public
                 // portfolio is a static snapshot hosted by GitHub Pages.
-                Redirect::to(&format!("{}/messages/{}", state.config.threads_url, token.unwrap_or_default()))
-                    .into_response()
+                Redirect::to(&format!(
+                    "{}/messages/{}",
+                    state.config.threads_url,
+                    token.unwrap_or_default()
+                ))
+                .into_response()
             }
         }
         Err(error) => {
@@ -142,7 +154,10 @@ pub fn form_fields(bytes: &[u8]) -> std::collections::HashMap<String, String> {
         if key.is_empty() {
             continue;
         }
-        map.insert(percent_decode(key), percent_decode(&value.replace('+', " ")));
+        map.insert(
+            percent_decode(key),
+            percent_decode(&value.replace('+', " ")),
+        );
     }
     map
 }
@@ -190,7 +205,10 @@ pub async fn post_thread(
         return Err(ApiError::forbidden());
     }
     let ip = client_ip(&headers, state.config.trust_proxy_ip);
-    if !state.throttle(format!("reply:{ip}"), 30, Duration::from_secs(600)).await {
+    if !state
+        .throttle(format!("reply:{ip}"), 30, Duration::from_secs(600))
+        .await
+    {
         return Err(ApiError::new(
             StatusCode::TOO_MANY_REQUESTS,
             "rate_limited",

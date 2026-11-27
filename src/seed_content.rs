@@ -68,7 +68,10 @@ async fn insert(
         let options = LookupOptions::load(db).await;
         let values = portfolio::parse_form(collection, &form, &options)
             .map_err(|error| format!("seed {slug}: {error}"))?;
-        let explicit_id = form.get("id").map(String::as_str).filter(|id| !id.is_empty());
+        let explicit_id = form
+            .get("id")
+            .map(String::as_str)
+            .filter(|id| !id.is_empty());
         portfolio::insert_row_with_id(db, collection, explicit_id, &values).await?;
     }
     Ok(())
@@ -80,9 +83,24 @@ const CATEGORIES: &[SeedRow] = &[
 ];
 
 const TOOL_GROUPS: &[SeedRow] = &[
-    &[("id", "interfaces"), ("number", "01"), ("title", "Interfaces that feel right"), ("subtitle", "Mobile & web")],
-    &[("id", "systems"), ("number", "02"), ("title", "Systems that hold up"), ("subtitle", "Backend & data")],
-    &[("id", "explore"), ("number", "03"), ("title", "Ideas worth exploring"), ("subtitle", "AI & developer tools")],
+    &[
+        ("id", "interfaces"),
+        ("number", "01"),
+        ("title", "Interfaces that feel right"),
+        ("subtitle", "Mobile & web"),
+    ],
+    &[
+        ("id", "systems"),
+        ("number", "02"),
+        ("title", "Systems that hold up"),
+        ("subtitle", "Backend & data"),
+    ],
+    &[
+        ("id", "explore"),
+        ("number", "03"),
+        ("title", "Ideas worth exploring"),
+        ("subtitle", "AI & developer tools"),
+    ],
 ];
 
 const PROJECTS: &[SeedRow] = &[
@@ -262,14 +280,46 @@ const PRINCIPLES: &[SeedRow] = &[
 ];
 
 const MILESTONES: &[SeedRow] = &[
-    &[("title", "B.Sc. Computer Science"), ("marker", "2024"), ("detail", "Gretsa University, Thika")],
-    &[("title", "First place · Mobile Development"), ("marker", "01"), ("detail", "Gretsa National Programming Contest, March 2024")],
-    &[("title", "Product engineering"), ("marker", "Now"), ("detail", "Flutter, Rust, and on-device ML for real users")],
+    &[
+        ("title", "B.Sc. Computer Science"),
+        ("marker", "2024"),
+        ("detail", "Gretsa University, Thika"),
+    ],
+    &[
+        ("title", "First place · Mobile Development"),
+        ("marker", "01"),
+        ("detail", "Gretsa National Programming Contest, March 2024"),
+    ],
+    &[
+        ("title", "Product engineering"),
+        ("marker", "Now"),
+        ("detail", "Flutter, Rust, and on-device ML for real users"),
+    ],
 ];
 
 const SOCIALS: &[SeedRow] = &[
-    &[("label", "GitHub"), ("handle", "@gideonsigilai"), ("href", "https://github.com/gideonsigilai"), ("icon", "github")],
-    &[("label", "LinkedIn"), ("handle", "Gideon Sigilai"), ("href", "https://www.linkedin.com/in/gideon-sigilai"), ("icon", "linkedin")],
-    &[("label", "Ultralytics"), ("handle", "@gideon-sigilai"), ("href", "https://platform.ultralytics.com/gideon-sigilai"), ("icon", "model")],
-    &[("label", "Email"), ("handle", "gideon.sigilai3000@gmail.com"), ("href", "mailto:gideon.sigilai3000@gmail.com"), ("icon", "mail")],
+    &[
+        ("label", "GitHub"),
+        ("handle", "@gideonsigilai"),
+        ("href", "https://github.com/gideonsigilai"),
+        ("icon", "github"),
+    ],
+    &[
+        ("label", "LinkedIn"),
+        ("handle", "Gideon Sigilai"),
+        ("href", "https://www.linkedin.com/in/gideon-sigilai"),
+        ("icon", "linkedin"),
+    ],
+    &[
+        ("label", "Ultralytics"),
+        ("handle", "@gideon-sigilai"),
+        ("href", "https://platform.ultralytics.com/gideon-sigilai"),
+        ("icon", "model"),
+    ],
+    &[
+        ("label", "Email"),
+        ("handle", "gideon.sigilai3000@gmail.com"),
+        ("href", "mailto:gideon.sigilai3000@gmail.com"),
+        ("icon", "mail"),
+    ],
 ];

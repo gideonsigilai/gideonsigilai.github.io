@@ -6,15 +6,17 @@ use axum::{
 use serde::Deserialize;
 use serde_json::{json, Value};
 
-use crate::content::{all_posts, published_by_slug, published_by_tag, related, tag_counts, PostRow};
+use crate::content::{
+    all_posts, published_by_slug, published_by_tag, related, tag_counts, PostRow,
+};
 use crate::portfolio::{self, ProjectRow, Site};
 use crate::state::{ApiError, ApiResult, AppState};
 use crate::template::{escape_html, render};
 use crate::text::{normalise_headings, plain_text};
 use crate::views::{
-    blog_posting_schema, breadcrumb_schema, creative_work_schema, date_label, json_ld, page_title,
-    initials_of, person_schema, social_row, topic_options, website_schema, Page, HOME, POST, WRITING,
-    WORK_DETAIL,
+    blog_posting_schema, breadcrumb_schema, creative_work_schema, date_label, initials_of, json_ld,
+    page_title, person_schema, post_image_alt, project_image_alt, social_row, topic_options,
+    website_schema, Page, HOME, POST, WORK_DETAIL, WRITING,
 };
 
 fn base(state: &AppState) -> &str {
@@ -42,10 +44,28 @@ fn post_card(post: &PostRow) -> Value {
     })
 }
 
+fn post_topics(posts: &[PostRow]) -> Vec<String> {
+    let mut topics = Vec::new();
+    for tag in posts.iter().flat_map(PostRow::tags) {
+        if !topics
+            .iter()
+            .any(|topic: &String| topic.eq_ignore_ascii_case(&tag))
+        {
+            topics.push(tag);
+        }
+    }
+    topics
+}
+
 fn tags_html(post: &PostRow) -> String {
     post.tags()
         .iter()
-        .map(|tag| format!(r#"<span class="chip">{}</span>"#, escape_html(tag)))
+        .map(|tag| {
+            format!(
+                r#"<span class="chip" role="listitem">{}</span>"#,
+                escape_html(tag)
+            )
+        })
         .collect::<Vec<_>>()
         .join("")
 }
@@ -59,7 +79,12 @@ fn project_card(project: &ProjectRow, index: usize) -> Value {
     if let Some(Value::Array(stack)) = object.remove("stack") {
         object.insert(
             "stack_tags".into(),
-            Value::Array(stack.into_iter().map(|label| json!({ "label": label })).collect()),
+            Value::Array(
+                stack
+                    .into_iter()
+                    .map(|label| json!({ "label": label }))
+                    .collect(),
+            ),
         );
     }
     object.insert("wide".into(), json!(index == 0));
@@ -97,11 +122,7 @@ pub async fn home(State(state): State<AppState>) -> ApiResult<Response> {
         .filter(PostRow::is_published)
         .collect::<Vec<_>>();
 
-    let cards: Vec<Value> = posts
-        .iter()
-        .take(3)
-        .map(post_card)
-        .collect();
+    let cards: Vec<Value> = posts.iter().take(3).map(post_card).collect();
     let site = Site::load(&state.db).await;
 
     let project_values: Vec<Value> = site
@@ -198,7 +219,10 @@ pub async fn home(State(state): State<AppState>) -> ApiResult<Response> {
         }),
     ]);
     let page = Page::new(
-        format!("{} — {} in {}", site.profile.name, site.profile.job_title, site.profile.location),
+        format!(
+            "{} — {} in {}",
+            site.profile.name, site.profile.job_title, site.profile.location
+        ),
         site.profile.description.clone(),
         "/",
     )
@@ -208,7 +232,10 @@ pub async fn home(State(state): State<AppState>) -> ApiResult<Response> {
 
 // ---------------------------------------------------------------- work detail
 
-pub async fn work_detail(State(state): State<AppState>, Path(slug): Path<String>) -> ApiResult<Response> {
+pub async fn work_detail(
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+) -> ApiResult<Response> {
     let site = Site::load(&state.db).await;
     let Some(project) = portfolio::visible_project(&state.db, &slug).await else {
         return not_found_response(&state);
@@ -217,7 +244,12 @@ pub async fn work_detail(State(state): State<AppState>, Path(slug): Path<String>
     let stack = project.stack();
     let stack_chips = stack
         .iter()
-        .map(|item| format!(r#"<span class="chip">{}</span>"#, escape_html(item)))
+        .map(|item| {
+            format!(
+                r#"<span class="chip" role="listitem">{}</span>"#,
+                escape_html(item)
+            )
+        })
         .collect::<String>();
 
     let story = project
@@ -238,7 +270,11 @@ pub async fn work_detail(State(state): State<AppState>, Path(slug): Path<String>
         format!(
             r#"<p style="margin-top:1.15rem"><a class="text-link" href="{}" target="_blank" rel="noopener noreferrer">{} ↗</a></p>"#,
             escape_html(&project.link_href),
-            escape_html(if project.link_label.is_empty() { "Open" } else { &project.link_label }),
+            escape_html(if project.link_label.is_empty() {
+                "Open"
+            } else {
+                &project.link_label
+            }),
         )
     };
 
@@ -289,21 +325,51 @@ pub async fn work_detail(State(state): State<AppState>, Path(slug): Path<String>
         creative_work_schema(&site, base(&state), &project),
         breadcrumb_schema(
             base(&state),
-            &[("Home", "/"), ("Work", "/#work"), (&project.name, &format!("/work/{slug}"))],
+            &[
+                ("Home", "/"),
+                ("Work", "/#work"),
+                (&project.name, &format!("/work/{slug}")),
+            ],
         ),
     ]);
+    let discipline = project
+        .category_label
+        .rsplit('/')
+        .next()
+        .unwrap_or_default()
+        .trim();
+    let project_title = if discipline.is_empty()
+        || project
+            .name
+            .to_lowercase()
+            .contains(&discipline.to_lowercase())
+    {
+        format!("{} case study", project.name)
+    } else {
+        format!("{} {} case study", project.name, discipline)
+    };
+    let description = format!(
+        "{} {} case study by {}, {} in {}. Technologies: {}.",
+        project.summary,
+        project.name,
+        site.profile.name,
+        site.profile.job_title,
+        site.profile.location,
+        stack.join(", ")
+    );
     let page = Page::new(
-        page_title(&site, &project.name),
-        format!("{} A project by {}, {}.", project.summary, site.profile.name, site.profile.job_title),
+        page_title(&site, &project_title),
+        description,
         format!("/work/{slug}"),
     )
     .head(head);
     let page = if !project.image.is_empty() {
-        let image_url = if project.image.starts_with("http://") || project.image.starts_with("https://") {
-            project.image.clone()
-        } else {
-            format!("{}{}", base(&state), project.image)
-        };
+        let image_url =
+            if project.image.starts_with("http://") || project.image.starts_with("https://") {
+                project.image.clone()
+            } else {
+                format!("{}{}", base(&state), project.image)
+            };
         page.social_image(image_url)
             .social_image_alt(project_image_alt(&project))
     } else {
@@ -333,15 +399,31 @@ pub async fn writing(State(state): State<AppState>) -> ApiResult<Response> {
         .collect();
 
     let site = Site::load(&state.db).await;
-    let body = render(WRITING, &json!({
-        "posts": cards,
-        "has_posts": has_posts,
-        "author": site.profile.name,
-    }));
-    let description = format!(
-        "Writing and engineering notes by {}, {} in {}. Ideas and lessons from building software.",
-        site.profile.name, site.profile.job_title, site.profile.location
+    let body = render(
+        WRITING,
+        &json!({
+            "posts": cards,
+            "has_posts": has_posts,
+            "author": site.profile.name,
+        }),
     );
+    let topic_summary = topics
+        .iter()
+        .take(5)
+        .map(String::as_str)
+        .collect::<Vec<_>>()
+        .join(", ");
+    let description = if topic_summary.is_empty() {
+        format!(
+            "Software engineering notes by {}, {} in {}. Ideas and lessons from building software.",
+            site.profile.name, site.profile.job_title, site.profile.location
+        )
+    } else {
+        format!(
+            "Software engineering notes by {} on {}. Practical architecture and development lessons from shipped projects.",
+            site.profile.name, topic_summary
+        )
+    };
     let head = json_ld(vec![
         person_schema(&site, base(&state)),
         website_schema(&site, base(&state)),
@@ -378,7 +460,7 @@ pub async fn writing(State(state): State<AppState>) -> ApiResult<Response> {
         breadcrumb_schema(base(&state), &[("Home", "/"), ("Writing", "/writing")]),
     ]);
     let page = Page::new(
-        page_title(&site, "Writing"),
+        page_title(&site, "Software engineering notes"),
         description,
         "/writing",
     )
@@ -388,9 +470,15 @@ pub async fn writing(State(state): State<AppState>) -> ApiResult<Response> {
 
 // ---------------------------------------------------------------- post
 
-pub async fn post_detail(State(state): State<AppState>, Path(slug): Path<String>) -> ApiResult<Response> {
+pub async fn post_detail(
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+) -> ApiResult<Response> {
     let site = Site::load(&state.db).await;
-    let Some(post) = published_by_slug(&state.db, &slug).await.map_err(ApiError::internal)? else {
+    let Some(post) = published_by_slug(&state.db, &slug)
+        .await
+        .map_err(ApiError::internal)?
+    else {
         return not_found_response(&state);
     };
     let more = related(&state.db, &post.id, 3).await;
@@ -432,9 +520,22 @@ pub async fn post_detail(State(state): State<AppState>, Path(slug): Path<String>
         blog_posting_schema(&site, base(&state), &post, &plain),
         breadcrumb_schema(
             base(&state),
-            &[("Home", "/"), ("Writing", "/writing"), (&post.title, &format!("/writing/{slug}"))],
+            &[
+                ("Home", "/"),
+                ("Writing", "/writing"),
+                (&post.title, &format!("/writing/{slug}")),
+            ],
         ),
     ]);
+    let article_tags = tags
+        .iter()
+        .map(|tag| {
+            format!(
+                r#"<meta property="article:tag" content="{}">"#,
+                escape_html(tag)
+            )
+        })
+        .collect::<String>();
     let extra = format!(
         r#"<meta property="article:published_time" content="{}"><meta property="article:modified_time" content="{}"><meta property="article:author" content="{}"><meta property="article:section" content="{}">{}{}"#,
         escape_html(post.published_at.as_deref().unwrap_or_default()),
@@ -444,9 +545,27 @@ pub async fn post_detail(State(state): State<AppState>, Path(slug): Path<String>
         article_tags,
         head
     );
-    let page = Page::new(page_title(&site, &post.title), post.excerpt, format!("/writing/{slug}"))
-        .article()
-        .head(extra);
+    let social_image_alt = post_image_alt(&post);
+    let page = Page::new(
+        page_title(&site, &post.title),
+        post.excerpt,
+        format!("/writing/{slug}"),
+    )
+    .article()
+    .head(extra);
+    let page = if !post.cover_image.is_empty() {
+        let image_url = if post.cover_image.starts_with("http://")
+            || post.cover_image.starts_with("https://")
+        {
+            post.cover_image.clone()
+        } else {
+            format!("{}{}", base(&state), post.cover_image)
+        };
+        page.social_image(image_url)
+            .social_image_alt(social_image_alt)
+    } else {
+        page
+    };
     Ok(html(crate::views::render_page(&site, page, &state, body)))
 }
 
@@ -693,7 +812,12 @@ pub fn not_found_response(state: &AppState) -> ApiResult<Response> {
             "copy": "The link may be old or mistyped. Everything worth reading is one step away.",
         }),
     );
-    let page = Page::new(page_title(&site, "Page not found"), "That page could not be found.", "/404").noindex();
+    let page = Page::new(
+        page_title(&site, "Page not found"),
+        "That page could not be found.",
+        "/404",
+    )
+    .noindex();
     Ok((
         StatusCode::NOT_FOUND,
         Html(crate::views::render_page(&site, page, state, body)),
@@ -708,7 +832,12 @@ pub struct TagQuery {
 
 /// JSON feed kept for tooling and future clients.
 pub async fn json_posts(State(state): State<AppState>, Query(query): Query<TagQuery>) -> Response {
-    let posts = match query.tag.as_deref().map(str::trim).filter(|tag| !tag.is_empty()) {
+    let posts = match query
+        .tag
+        .as_deref()
+        .map(str::trim)
+        .filter(|tag| !tag.is_empty())
+    {
         Some(tag) => published_by_tag(&state.db, tag, 50).await,
         None => crate::content::list_published(&state.db, 50).await,
     }
@@ -736,4 +865,3 @@ pub async fn json_posts(State(state): State<AppState>, Query(query): Query<TagQu
     )
         .into_response()
 }
-

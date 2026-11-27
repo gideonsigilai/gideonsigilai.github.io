@@ -5,7 +5,10 @@ use sqlx::SqlitePool;
 
 /// Hashes `ADMIN_PASSWORD` into the database on first boot. Once a hash exists,
 /// the plaintext variable is ignored, so it can be removed from the environment.
-pub async fn bootstrap_admin(db: &SqlitePool, config: &Config) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn bootstrap_admin(
+    db: &SqlitePool,
+    config: &Config,
+) -> Result<(), Box<dyn std::error::Error>> {
     if config.admin_password_hash.is_some() {
         return Ok(());
     }
@@ -387,7 +390,12 @@ Shipping is a habit, not an event.
 /// deleted is not re-inserted, but new starter essays are added on upgrade.
 pub async fn seed_posts(db: &SqlitePool) -> Result<(), Box<dyn std::error::Error>> {
     for seed in SEEDS {
-        if crate::content::published_by_slug(db, seed.slug).await.ok().flatten().is_some() {
+        if crate::content::published_by_slug(db, seed.slug)
+            .await
+            .ok()
+            .flatten()
+            .is_some()
+        {
             continue;
         }
         let html = normalise_headings(&render_markdown(seed.markdown), seed.title);
@@ -408,13 +416,15 @@ pub async fn seed_posts(db: &SqlitePool) -> Result<(), Box<dyn std::error::Error
         )
         .await?;
         // Backdate so the feed reads like a history rather than a bulk import.
-        sqlx::query("UPDATE posts SET published_at = ?, created_at = ?, updated_at = ? WHERE slug = ?")
-            .bind(seed.published_at)
-            .bind(seed.published_at)
-            .bind(seed.published_at)
-            .bind(seed.slug)
-            .execute(db)
-            .await?;
+        sqlx::query(
+            "UPDATE posts SET published_at = ?, created_at = ?, updated_at = ? WHERE slug = ?",
+        )
+        .bind(seed.published_at)
+        .bind(seed.published_at)
+        .bind(seed.published_at)
+        .bind(seed.slug)
+        .execute(db)
+        .await?;
     }
     tracing::info!(count = SEEDS.len(), "seeded starter posts");
     Ok(())

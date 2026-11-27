@@ -155,7 +155,10 @@ pub async fn record_telemetry(
     body: axum::body::Bytes,
 ) -> Response {
     let ip = client_ip(&headers, state.config.trust_proxy_ip);
-    if !state.throttle(format!("telemetry:{ip}"), 60, Duration::from_secs(60)).await {
+    if !state
+        .throttle(format!("telemetry:{ip}"), 60, Duration::from_secs(60))
+        .await
+    {
         return StatusCode::TOO_MANY_REQUESTS.into_response();
     }
 
