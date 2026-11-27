@@ -121,6 +121,7 @@ fn cover(
     let (paper, ink, panel) = match accent {
         "lime" => ("#dce8c5", "#20261b", "#edf2e4"),
         "sky" => ("#263f37", "#edf2d9", "#355247"),
+        "blue" => ("#2596be", "#f7f8f2", "#1f7aa0"),
         _ => ("#dedcf1", "#26233c", "#eeedf7"),
     };
     let heading = text_lines(heading, 26, 3);

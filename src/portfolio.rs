@@ -348,7 +348,7 @@ const PROJECT_FIELDS: &[Field] = &[
     Field { column: "year", label: "Timeline", kind: Kind::Line { max: 40 }, required: false, hint: "" },
     Field { column: "role", label: "Role", kind: Kind::Line { max: 100 }, required: false, hint: "" },
     Field { column: "status", label: "Status", kind: Kind::Line { max: 60 }, required: false, hint: "" },
-    Field { column: "accent", label: "Accent", kind: Kind::Choice(&["lime", "clay", "sky"]), required: true, hint: "" },
+    Field { column: "accent", label: "Accent", kind: Kind::Choice(&["lime", "clay", "sky", "blue"]), required: true, hint: "" },
     Field { column: "stack", label: "Stack", kind: Kind::Strings { max: 40 }, required: false, hint: "One technology per line." },
     Field { column: "features", label: "What's inside", kind: Kind::Pairs { max: 20 }, required: false, hint: "One per line, as \"Title :: Detail\"." },
     Field { column: "story", label: "The problem", kind: Kind::Strings { max: 20 }, required: false, hint: "One paragraph per line." },
