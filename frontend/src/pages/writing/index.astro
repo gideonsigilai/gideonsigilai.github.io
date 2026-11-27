@@ -15,7 +15,8 @@ const author = site.profile.name;
 const jobTitle = site.profile.job_title;
 const location = site.profile.location;
 const initials = site.profile.name.split(' ').map((w: string) => w[0]).join('').slice(0,2).toUpperCase();
-const socialsHtml = (site.socials || []).map((s: any) => `<a class="social-link" href="${s.href}" rel="noopener noreferrer me" target="_blank">${s.label}</a>`).join('');
+import { socialsHtml as renderSocials } from '../../lib/socials';
+const socialsHtml = renderSocials(site.socials || []);
 const nav = [
   { href: '/', label: 'Home', short: 'Home' },
   { href: '/#work', label: 'Work', short: 'Work' },

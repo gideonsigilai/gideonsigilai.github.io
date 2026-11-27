@@ -572,13 +572,15 @@
   var homeSections = [];
   var navLinks = [];
   if (document.getElementById("work") && document.getElementById("about")) {
-    homeSections = ["work", "about", "toolkit", "writing", "contact"]
+    homeSections = ["home", "work", "about", "toolkit", "writing", "contact"]
       .map(function (id) { return document.getElementById(id); })
       .filter(function (section) { return section; });
     navLinks = Array.prototype.slice.call(
       document.querySelectorAll("#site-header a[href], #menu-sheet a[href]")
     ).filter(function (link) {
-      return link.origin === window.location.origin && link.hash &&
+      var href = link.getAttribute("href") || "";
+      var isHome = (href === "/" || href === window.location.pathname) && !link.hash;
+      return link.origin === window.location.origin && (link.hash || isHome) &&
         (link.pathname === "/" || link.pathname === window.location.pathname);
     });
   }
@@ -602,7 +604,8 @@
       if (rect.top <= 155) active = section.id;
     });
     navLinks.forEach(function (link) {
-      var current = link.hash === "#" + active;
+      var linkSection = link.hash ? link.hash.slice(1) : "home";
+      var current = linkSection === active;
       link.classList.toggle("active", current);
       if (current) link.setAttribute("aria-current", "location");
       else link.removeAttribute("aria-current");

@@ -17,7 +17,8 @@ const projects = await Promise.all(projectsRaw.map(async (p: any) => ({
 
 const creatorImg = await imageUrl(API_BASE + "/images/creator.webp");
 const filters = site.filters || [];
-const socialsHtml = (site.socials || []).map((s: any) => `<a class="social-link" href="${s.href}" rel="noopener noreferrer me" target="_blank">${s.label}</a>`).join('');
+import { socialsHtml as renderSocials } from '../lib/socials';
+const socialsHtml = renderSocials(site.socials || []);
 const toolGroups = toolkitRes.groups || [];
 const tools = toolkitRes.tools || [];
 const principles = aboutRes.principles || [];

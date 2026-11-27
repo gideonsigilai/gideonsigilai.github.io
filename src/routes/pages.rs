@@ -39,7 +39,7 @@ fn post_card(post: &PostRow) -> Value {
         "tag": tags.first().cloned().unwrap_or_default(),
         "cover_note": if post.cover_note.is_empty() { "Notes from the build." } else { &post.cover_note },
         "cover_image": post.cover_image,
-        "image_alt": post_image_alt(post),
+        "image_alt": post_image_alt(&post),
         "tags": tags.join(" · "),
     })
 }
@@ -853,6 +853,9 @@ pub async fn json_posts(State(state): State<AppState>, Query(query): Query<TagQu
             "reading_min": post.reading_min,
             "published_at": post.published_at,
             "updated_at": post.updated_at,
+            "cover_image": post.cover_image,
+            "cover_note": post.cover_note,
+            "image_alt": post_image_alt(&post),
         })).collect::<Vec<_>>(),
         "tags": tag_counts(&state.db).await.into_iter()
             .map(|(tag, count)| json!({ "tag": tag, "count": count }))
@@ -905,6 +908,9 @@ pub async fn json_post(State(state): State<AppState>, Path(slug): Path<String>) 
             "image_alt": post_image_alt(&post),
             "published_at": post.published_at.clone().unwrap_or_default(),
             "updated_at": post.updated_at,
+            "cover_image": post.cover_image,
+            "cover_note": post.cover_note,
+            "image_alt": post_image_alt(&post),
             "tags": tags,
         },
         "date": post.published_at.as_deref().map(date_label).unwrap_or_default(),
