@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { API_BASE, apiFetch } from '../../lib/api';
+import { API_BASE, apiFetch } from "../../lib/api";
+import { toDataUri } from "../../lib/images";
 
 export async function getStaticPaths() {
   const res = await apiFetch('/api/projects');
@@ -10,6 +11,7 @@ export async function getStaticPaths() {
 const { slug } = Astro.params;
 const res = await apiFetch(`/api/projects/${slug}`);
 const project = res.project;
+const projectImage = await toDataUri(project.image ? project.image : `${API_BASE}/images/work/${project.slug}.svg`);
 const others = res.others || [];
 const site = await apiFetch('/api/site');
 const initials = site.profile.name.split(' ').map((w: string) => w[0]).join('').slice(0,2).toUpperCase();
@@ -48,7 +50,7 @@ const link = project.link;
         <div><dt>Stack</dt><dd>{project.stack_line}</dd></div>
       </dl>
       <figure class={`project-art detail-art art--${project.accent}`}>
-        <img class="cover-art" src={project.image || `${API_BASE}/images/work/${project.slug}.svg`} width="1200" height="630" loading="eager" fetchpriority="high" decoding="async" alt={project.image_alt} />
+        <img class="cover-art" src={projectImage} width="1200" height="630" loading="eager" fetchpriority="high" decoding="async" alt={project.image_alt} />
         <figcaption class="sr-only">{project.tagline}</figcaption>
       </figure>
     </header>

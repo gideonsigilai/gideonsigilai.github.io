@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { API_BASE, apiFetch } from '../lib/api';
+import { toDataUri, absolutize } from '../lib/images';
 
 const site = await apiFetch('/api/site');
 const projectsRes = await apiFetch('/api/projects');
@@ -8,14 +9,25 @@ const toolkitRes = await apiFetch('/api/toolkit');
 const aboutRes = await apiFetch('/api/about');
 const postsRes = await apiFetch('/api/posts');
 
-const projects = projectsRes.projects || [];
+const projectsRaw = projectsRes.projects || [];
+const projects = await Promise.all(projectsRaw.map(async (p: any) => ({
+  ...p,
+  image: p.image ? await toDataUri(p.image) : await toDataUri(`${API_BASE}/images/work/${p.slug}.svg`),
+})));
+
+const creatorImg = await toDataUri(API_BASE + "/images/creator.png");
 const filters = site.filters || [];
 const socialsHtml = (site.socials || []).map((s: any) => `<a class="social-link" href="${s.href}" rel="noopener noreferrer me" target="_blank">${s.label}</a>`).join('');
 const toolGroups = toolkitRes.groups || [];
 const tools = toolkitRes.tools || [];
 const principles = aboutRes.principles || [];
 const milestones = aboutRes.milestones || [];
-const posts = (postsRes.posts || []).slice(0, 3);
+const postsRaw = (postsRes.posts || []).slice(0, 3);
+const posts = await Promise.all(postsRaw.map(async (p: any) => ({
+  ...p,
+  cover_image: p.cover_image ? await toDataUri(p.cover_image) : await toDataUri(`${API_BASE}/images/writing/${p.slug}.svg`),
+})));
+
 const tags = postsRes.tags || [];
 
 // build tool chips per group
@@ -94,7 +106,7 @@ const canonical = Astro.site ? new URL('/', Astro.site).href : '/';
   <section class="about" id="about" aria-labelledby="about-title">
     <div class="wrap about-grid">
       <div class="portrait">
-        <img class="portrait-photo" src={`${API_BASE}/images/creator.png`} width="480" height="576" loading="lazy" decoding="async" alt={`Portrait of ${site.profile.name}, ${site.profile.job_title} in ${site.profile.location}`} />
+        <img class="portrait-photo" src={creatorImg} width="480" height="576" loading="lazy" decoding="async" alt={`Portrait of ${site.profile.name}, ${site.profile.job_title} in ${site.profile.location}`} />
         <span class="portrait-top">The person behind the code</span>
         <span class="portrait-bottom">{site.profile.location} <span aria-hidden="true">＋</span></span>
       </div>

@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { API_BASE, apiFetch } from '../../lib/api';
+import { API_BASE, apiFetch } from "../../lib/api";
+import { toDataUri } from "../../lib/images";
 
 export async function getStaticPaths() {
   const res = await apiFetch('/api/posts');
@@ -10,6 +11,7 @@ export async function getStaticPaths() {
 const { slug } = Astro.params;
 const res = await apiFetch(`/api/posts/${slug}`);
 const post = res.post;
+const postImage = await toDataUri(post.cover_image ? post.cover_image : `${API_BASE}/images/writing/${post.slug}.svg`);
 const site = await apiFetch('/api/site');
 const initials = site.profile.name.split(' ').map((w: string) => w[0]).join('').slice(0,2).toUpperCase();
 const socialsHtml = (site.socials || []).map((s: any) => `<a class="social-link" href="${s.href}" rel="noopener noreferrer me" target="_blank">${s.label}</a>`).join('');
@@ -48,7 +50,7 @@ const fmt = (d: string) => { try { return new Date(d).toLocaleDateString('en-US'
         </div>
       </header>
       <figure class="article-cover">
-        <img src={post.cover_image || `${API_BASE}/images/writing/${post.slug}.svg`} width="1200" height="630" loading="eager" fetchpriority="high" decoding="async" alt={post.image_alt} />
+        <img src={postImage} width="1200" height="630" loading="eager" fetchpriority="high" decoding="async" alt={post.image_alt} />
       </figure>
       <div class="post-body">
         <div class="prose" set:html={res.article}></div>

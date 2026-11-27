@@ -1,9 +1,15 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { API_BASE, apiFetch } from '../../lib/api';
+import { API_BASE, apiFetch } from "../../lib/api";
+import { toDataUri } from "../../lib/images";
 
 const postsRes = await apiFetch('/api/posts');
-const posts = postsRes.posts || [];
+const postsRaw = postsRes.posts || [];
+const posts = await Promise.all(postsRaw.map(async (p: any) => ({
+  ...p,
+  cover_image: p.cover_image ? await toDataUri(p.cover_image) : await toDataUri(`${API_BASE}/images/writing/${p.slug}.svg`),
+})));
+
 const site = await apiFetch('/api/site');
 const author = site.profile.name;
 const jobTitle = site.profile.job_title;
