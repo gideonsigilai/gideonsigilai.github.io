@@ -15,7 +15,7 @@ const projects = await Promise.all(projectsRaw.map(async (p: any) => ({
   image: p.image ? await imageUrl(p.image) : await imageUrl(`${API_BASE}/images/work/${p.slug}.svg`),
 })));
 
-const creatorImg = await imageUrl(API_BASE + "/images/creator.png");
+const creatorImg = await imageUrl(API_BASE + "/images/creator.webp");
 const filters = site.filters || [];
 const socialsHtml = (site.socials || []).map((s: any) => `<a class="social-link" href="${s.href}" rel="noopener noreferrer me" target="_blank">${s.label}</a>`).join('');
 const toolGroups = toolkitRes.groups || [];
@@ -109,7 +109,7 @@ const headExtra = '<script type="application/ld+json">' + jsonLd + '</script>';
   <section class="about" id="about" aria-labelledby="about-title">
     <div class="wrap about-grid">
       <div class="portrait">
-        <img class="portrait-photo" src={creatorImg} width="480" height="576" loading="lazy" decoding="async" alt={`Portrait of ${site.profile.name}, ${site.profile.job_title} in ${site.profile.location}`} />
+        <img class="portrait-photo" src={creatorImg} width="480" height="640" loading="lazy" decoding="async" alt={`Portrait of ${site.profile.name}, ${site.profile.job_title} in ${site.profile.location}`} />
         <span class="portrait-top">The person behind the code</span>
         <span class="portrait-bottom">{site.profile.location} <span aria-hidden="true">＋</span></span>
       </div>

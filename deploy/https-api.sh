@@ -83,7 +83,7 @@ EOF
         cat >> "$work/portfolio-api.conf" <<EOF
 server {
     # A specific public interface lets TLS and the loopback Rust API share 8052.
-    listen $public_ip:$api_port ssl;
+    listen $public_ip:$api_port ssl http2;
     server_name $public_ip;
     ssl_certificate $cert_dir/fullchain.pem;
     ssl_certificate_key $cert_dir/privkey.pem;

@@ -310,8 +310,8 @@ pub fn person_schema(site: &Site, base: &str) -> Value {
         "url": format!("{base}/"),
         "image": {
             "@type": "ImageObject",
-            "url": format!("{base}/images/creator.png"),
-            "contentUrl": format!("{base}/images/creator.png"),
+            "url": format!("{base}/images/creator.webp"),
+            "contentUrl": format!("{base}/images/creator.webp"),
             "width": 1086,
             "height": 1448,
             "caption": format!("Portrait of {}, {} in {}.", profile.name, profile.job_title, profile.location)

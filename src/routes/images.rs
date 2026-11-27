@@ -17,7 +17,7 @@ pub async fn social() -> Response {
     (
         [
             (header::CONTENT_TYPE, "image/png"),
-            (header::CACHE_CONTROL, "public, max-age=86400"),
+            (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
         ],
         include_bytes!("../../static/gideon-sigilai.png").as_slice(),
     )
@@ -27,10 +27,10 @@ pub async fn social() -> Response {
 pub async fn creator() -> Response {
     (
         [
-            (header::CONTENT_TYPE, "image/png"),
-            (header::CACHE_CONTROL, "public, max-age=86400"),
+            (header::CONTENT_TYPE, "image/webp"),
+            (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
         ],
-        include_bytes!("../../images/creator.png").as_slice(),
+        include_bytes!("../../images/creator.webp").as_slice(),
     )
         .into_response()
 }
